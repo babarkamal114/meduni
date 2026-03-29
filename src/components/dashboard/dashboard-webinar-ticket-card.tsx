@@ -130,7 +130,6 @@ export function DashboardWebinarTicketCard({
           ) : onGetTicket ? (
             <Button
               type="button"
-              size="default"
               className="rounded-lg px-6 py-3 text-base font-semibold bg-teal-600 hover:bg-teal-700 text-white"
               onClick={(e) => {
                 e.preventDefault();

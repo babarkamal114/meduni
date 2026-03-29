@@ -4,7 +4,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { FormMessage } from './form-message';
 
-interface FormFieldProps extends Omit<React.ComponentProps<typeof Input>, 'id'> {
+interface FormFieldProps extends Omit<
+  React.ComponentProps<typeof Input>,
+  'id' | 'error'
+> {
   id: string;
   label: string;
   error?: string;

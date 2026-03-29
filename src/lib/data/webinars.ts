@@ -248,7 +248,12 @@ export async function updateWebinar(
     ...(payload.join_url !== undefined && { join_url: payload.join_url }),
     ...(payload.replay_url !== undefined && { replay_url: payload.replay_url }),
   };
-  const { data, error } = await supabase.from('webinars').update(update as any).eq('id', id).select('*').single();
+  const { data, error } = await supabase
+    .from('webinars')
+    .update(update as never)
+    .eq('id', id)
+    .select('*')
+    .single();
   if (error) return { data: null, error: error.message };
   return { data: rowToWebinar(data as WebinarsRow, false), error: null };
 }

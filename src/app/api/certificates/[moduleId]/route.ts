@@ -34,13 +34,16 @@ export async function GET(
       siteName: siteConfig.name,
       verifyUrl,
     });
-    const buffer = await renderToBuffer(doc);
-    return new NextResponse(buffer, {
+    const buffer = await renderToBuffer(
+      doc as Parameters<typeof renderToBuffer>[0]
+    );
+    const body = new Uint8Array(buffer);
+    return new NextResponse(body, {
       status: 200,
       headers: {
         'Content-Type': 'application/pdf',
         'Content-Disposition': `attachment; filename="certificate-${data.moduleSlug}.pdf"`,
-        'Content-Length': String(buffer.length),
+        'Content-Length': String(body.byteLength),
       },
     });
   } catch (err) {

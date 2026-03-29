@@ -2,8 +2,10 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import type { ContentItem, ContentQuizItem } from '@/lib/mock/learning';
+import type { ContentItem, ContentQuizItem } from '@/lib/data/learning';
+import { CheckCircle2, RotateCcw } from 'lucide-react';
 
 type Content = ContentItem | ContentQuizItem;
 
@@ -17,9 +19,9 @@ function ContentPdf({ content }: { content: ContentItem }): React.ReactElement {
           Preview not available. Download the PDF to read offline.
         </p>
         <Button asChild>
-          <a href={content.downloadUrl ?? '#'} download>
+          <Link href={content.downloadUrl ?? '#'} download>
             Download PDF
-          </a>
+          </Link>
         </Button>
       </div>
       <Button asChild variant="secondary" size="sm">
@@ -31,12 +33,15 @@ function ContentPdf({ content }: { content: ContentItem }): React.ReactElement {
 
 function ContentQuiz({
   content,
+  onComplete,
 }: {
   content: ContentQuizItem;
+  onComplete?: (score: number, total: number) => Promise<void>;
 }): React.ReactElement {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const questions = content.questions;
   const current = questions[currentIndex];
@@ -47,9 +52,26 @@ function ContentQuiz({
     setAnswers((prev) => ({ ...prev, [current.id]: optionId }));
   };
 
-  const handleNext = () => {
-    if (isLast) setSubmitted(true);
-    else setCurrentIndex((i) => i + 1);
+  const handleNext = async () => {
+    if (isLast) {
+      const score = questions.filter(
+        (q) => answers[q.id] && q.options.find((o) => o.id === answers[q.id])?.correct
+      ).length;
+      const total = questions.length;
+      if (onComplete) {
+        setSubmitting(true);
+        try {
+          await onComplete(score, total);
+          setSubmitted(true);
+        } finally {
+          setSubmitting(false);
+        }
+      } else {
+        setSubmitted(true);
+      }
+    } else {
+      setCurrentIndex((i) => i + 1);
+    }
   };
 
   const handlePrev = () => setCurrentIndex((i) => Math.max(0, i - 1));
@@ -121,9 +143,9 @@ function ContentQuiz({
           <Button
             size="sm"
             onClick={handleNext}
-            disabled={!answers[current.id]}
+            disabled={!answers[current.id] || submitting}
           >
-            {isLast ? 'Submit' : 'Next'}
+            {submitting ? 'Saving…' : isLast ? 'Submit' : 'Next'}
           </Button>
         </div>
       </div>
@@ -161,14 +183,87 @@ function ContentVideo({ content }: { content: ContentItem }): React.ReactElement
   );
 }
 
+function ContentQuizEmpty({ content }: { content: ContentQuizItem }): React.ReactElement {
+  return (
+    <>
+      <h1 className="font-serif text-2xl text-slate-900 mb-2">{content.title}</h1>
+      <p className="text-slate-600 text-sm mb-6">{content.meta}</p>
+      <div className="rounded-2xl border border-black/5 bg-white p-6 mb-6">
+        <p className="text-slate-600 text-sm">No questions yet. Check back later.</p>
+      </div>
+      <Button asChild variant="secondary" size="sm">
+        <Link href="/dashboard/learning">Back to My Learning</Link>
+      </Button>
+    </>
+  );
+}
+
+function ContentQuizPassedView({
+  content,
+  contentId,
+}: {
+  content: ContentQuizItem;
+  contentId: string;
+}): React.ReactElement {
+  const retakeHref = `/dashboard/learning/content/${contentId}?retake=1`;
+  return (
+    <>
+      <h1 className="font-serif text-2xl text-slate-900 mb-2">{content.title}</h1>
+      <p className="text-slate-600 text-sm mb-6">{content.meta}</p>
+      <div className="rounded-2xl border border-teal-200 bg-gradient-to-b from-teal-50 to-emerald-50/50 p-8 mb-6 text-center">
+        <div className="flex justify-center mb-4">
+          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-teal-100">
+            <CheckCircle2 className="h-8 w-8 text-teal-600" strokeWidth={2} />
+          </div>
+        </div>
+        <h2 className="font-serif text-xl text-teal-900 mb-2">You passed this quiz</h2>
+        <p className="text-slate-600 text-sm max-w-md mx-auto mb-6">
+          You have successfully completed this quiz. You can review it again anytime using the button below.
+        </p>
+        <div className="flex flex-wrap items-center justify-center gap-3">
+          <Button asChild variant="secondary" size="sm">
+            <Link href="/dashboard/learning">Back to My Learning</Link>
+          </Button>
+          <Button asChild size="sm" className="gap-1.5">
+            <Link href={retakeHref}>
+              <RotateCcw className="h-3.5 w-3.5" />
+              Retake quiz
+            </Link>
+          </Button>
+        </div>
+      </div>
+    </>
+  );
+}
+
 export function ContentView({
   content,
+  passedView = false,
+  recordContentQuizAction,
 }: {
   content: Content;
+  passedView?: boolean;
+  recordContentQuizAction?: (
+    contentItemId: string,
+    score: number,
+    total: number
+  ) => Promise<{ error: string | null; passed: boolean }>;
 }): React.ReactElement {
+  const router = useRouter();
+
   if (content.type === 'pdf') return <ContentPdf content={content} />;
-  if (content.type === 'quiz')
-    return <ContentQuiz content={content as ContentQuizItem} />;
+  if (content.type === 'quiz') {
+    const quizContent = content as ContentQuizItem;
+    if (passedView) return <ContentQuizPassedView content={quizContent} contentId={content.id} />;
+    if (!quizContent.questions?.length) return <ContentQuizEmpty content={quizContent} />;
+    const onComplete =
+      recordContentQuizAction &&
+      (async (score: number, total: number) => {
+        const result = await recordContentQuizAction(content.id, score, total);
+        if (result.passed) router.push(`/dashboard/learning/content/${content.id}`);
+      });
+    return <ContentQuiz content={quizContent} onComplete={onComplete} />;
+  }
   if (content.type === 'video') return <ContentVideo content={content} />;
   return (
     <p className="text-slate-600">This content type is not supported.</p>

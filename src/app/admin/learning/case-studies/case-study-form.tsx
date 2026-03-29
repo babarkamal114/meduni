@@ -1,7 +1,7 @@
 'use client';
 
 import { useFormState } from 'react-dom';
-import type { CaseStudyItem } from '@/lib/mock/learning';
+import type { CaseStudyItem } from '@/lib/data/learning';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -42,7 +42,7 @@ export function CaseStudyForm({ action, initialValues }: CaseStudyFormProps): Re
           id="slug"
           name="slug"
           required
-          defaultValue={initialValues?.id}
+          defaultValue={initialValues?.slug ?? initialValues?.id}
           placeholder="chest-pain"
           className="w-full"
         />

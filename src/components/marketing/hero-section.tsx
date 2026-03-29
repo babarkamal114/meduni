@@ -16,56 +16,57 @@ export function HeroSection(): React.ReactElement {
         <div className="max-w-4xl mx-auto text-center">
           <div className="fade-up inline-flex items-center gap-2 px-4 py-2 rounded-full bg-teal-500/5 border border-teal-500/10 text-sm text-teal-600 mb-8">
             <span className="w-2 h-2 rounded-full bg-teal-500 animate-pulse" />
-            Next-Generation Medical Education
+            Clinical webinars for exam-ready learning
           </div>
           <h1 className="fade-up d1 font-serif text-5xl sm:text-6xl lg:text-8xl leading-[1.05]  text-slate-900 mb-8">
-            Where Medicine
+            Master Clinical Medicine
             <br />
-            <span className="grad-text italic [font-family:var(--font-instrument-serif),Georgia,serif]">Meets Innovation</span>
+            <span className="grad-text italic [font-family:var(--font-instrument-serif),Georgia,serif]">with Expert-Led Webinars</span>
           </h1>
           <p className="fade-up d2 text-lg sm:text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed mb-12">
-            Expert-led webinars, on-demand learning, and AI-powered tools — all
-            in one seamless platform designed for the future of medical
-            education.
+            High-yield, affordable online sessions that bridge textbook
+            knowledge and real-world clinical excellence. MedUni connects
+            medical students with expert clinicians across core disciplines to
+            deepen understanding and support exam readiness.
           </p>
           <div className="fade-up d3 flex flex-col sm:flex-row items-center justify-center gap-4">
             <GlowButton
-              href="/sign-up"
+              href="/webinars"
               className="group px-8 py-4 flex items-center gap-2 text-lg"
             >
-              Get started
+              Explore Webinars
               <ArrowUpRight className="w-5 h-5 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
             </GlowButton>
             <Link
-              href="/#webinars"
+              href="/sign-up"
               className="px-8 py-4 rounded-full border border-slate-200 text-slate-500 hover:text-teal-600 hover:border-teal-500/30 transition-all font-medium text-lg"
             >
-              View Webinars
+              Join Now - Free Registration &amp; Weekly Quiz
             </Link>
           </div>
           <div className="fade-up d4 grid grid-cols-3 gap-8 mt-20 pt-12 border-t border-black/5 max-w-lg mx-auto">
             <div className="text-center">
               <div className="font-serif text-3xl sm:text-4xl text-teal-600">
-                50K+
-              </div>
-              <div className="text-xs text-slate-600 mt-1 uppercase tracking-widest">
-                Patients Served
-              </div>
-            </div>
-            <div className="text-center">
-              <div className="font-serif text-3xl sm:text-4xl text-teal-600">
-                24/7
-              </div>
-              <div className="text-xs text-slate-600 mt-1 uppercase tracking-widest">
-                AI Support
-              </div>
-            </div>
-            <div className="text-center">
-              <div className="font-serif text-3xl sm:text-4xl text-teal-600">
                 NHS
               </div>
               <div className="text-xs text-slate-600 mt-1 uppercase tracking-widest">
-                Compliant
+                Expert-Led
+              </div>
+            </div>
+            <div className="text-center">
+              <div className="font-serif text-3xl sm:text-4xl text-teal-600">
+                Real
+              </div>
+              <div className="text-xs text-slate-600 mt-1 uppercase tracking-widest">
+                Case-Based
+              </div>
+            </div>
+            <div className="text-center">
+              <div className="font-serif text-3xl sm:text-4xl text-teal-600">
+                OSCE
+              </div>
+              <div className="text-xs text-slate-600 mt-1 uppercase tracking-widest">
+                Exam-Focused
               </div>
             </div>
           </div>

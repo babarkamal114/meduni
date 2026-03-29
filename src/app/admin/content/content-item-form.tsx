@@ -1,10 +1,12 @@
 'use client';
 
 import { useFormState } from 'react-dom';
-import type { ContentItem, ContentQuizItem } from '@/lib/mock/learning';
+import { useState, useId } from 'react';
+import type { ContentItem, ContentQuizItem, QuizQuestion } from '@/lib/data/learning';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { Plus, Trash2 } from 'lucide-react';
 
 type ContentType = 'pdf' | 'quiz' | 'video';
 
@@ -19,6 +21,45 @@ interface ContentItemFormProps {
   initialValues?: ContentItem | ContentQuizItem;
 }
 
+type QuizQuestionState = { id: string; question: string; options: { id: string; label: string; correct: boolean }[] };
+
+const defaultQuestion = (): QuizQuestionState => ({
+  id: `q-${Math.random().toString(36).slice(2, 11)}`,
+  question: '',
+  options: [
+    { id: 'a', label: '', correct: false },
+    { id: 'b', label: '', correct: false },
+  ],
+});
+
+const defaultOption = () => ({
+  id: `o-${Math.random().toString(36).slice(2, 9)}`,
+  label: '',
+  correct: false,
+});
+
+const MAX_OPTIONS = 6;
+const MIN_OPTIONS = 2;
+
+function toState(q: QuizQuestion): QuizQuestionState {
+  return {
+    id: q.id,
+    question: q.question,
+    options: q.options.map((o) => ({ id: o.id, label: o.label, correct: o.correct })),
+  };
+}
+
+function toPayload(questions: QuizQuestionState[]): { id: string; question: string; options: { id: string; label: string; correct: boolean }[] }[] {
+  return questions
+    .filter((q) => q.question.trim())
+    .map((q) => ({
+      id: q.id,
+      question: q.question.trim(),
+      options: q.options.filter((o) => o.label.trim()).map((o) => ({ id: o.id, label: o.label.trim(), correct: o.correct })),
+    }))
+    .filter((q) => q.options.length >= MIN_OPTIONS);
+}
+
 export function ContentItemForm({
   action,
   type,
@@ -29,10 +70,62 @@ export function ContentItemForm({
   const isPdf = type === 'pdf';
   const isVideo = type === 'video';
 
+  const initialQuestions: QuizQuestionState[] =
+    initialValues && 'questions' in initialValues && initialValues.questions?.length
+      ? initialValues.questions.map(toState)
+      : [defaultQuestion()];
+  const [questions, setQuestions] = useState<QuizQuestionState[]>(initialQuestions);
+  const formId = useId();
+
+  const addQuestion = () => setQuestions((prev) => [...prev, defaultQuestion()]);
+  const removeQuestion = (index: number) => {
+    if (questions.length <= 1) return;
+    setQuestions((prev) => prev.filter((_, i) => i !== index));
+  };
+  const setQuestionText = (index: number, value: string) => {
+    setQuestions((prev) => prev.map((q, i) => (i === index ? { ...q, question: value } : q)));
+  };
+  const addOption = (qIndex: number) => {
+    setQuestions((prev) =>
+      prev.map((q, i) =>
+        i === qIndex && q.options.length < MAX_OPTIONS
+          ? { ...q, options: [...q.options, defaultOption()] }
+          : q
+      )
+    );
+  };
+  const removeOption = (qIndex: number, oIndex: number) => {
+    setQuestions((prev) =>
+      prev.map((q, i) =>
+        i === qIndex && q.options.length > MIN_OPTIONS
+          ? { ...q, options: q.options.filter((_, j) => j !== oIndex) }
+          : q
+      )
+    );
+  };
+  const setOption = (qIndex: number, oIndex: number, field: 'label' | 'correct', value: string | boolean) => {
+    setQuestions((prev) =>
+      prev.map((q, i) =>
+        i === qIndex
+          ? {
+              ...q,
+              options: q.options.map((opt, j) =>
+                j === oIndex ? { ...opt, [field]: value } : field === 'correct' ? { ...opt, correct: false } : opt
+              ),
+            }
+          : q
+      )
+    );
+  };
+
+  const quizPayload = toPayload(questions);
+  const quizJson = isQuiz ? JSON.stringify(quizPayload) : '';
+
   return (
     <form action={formAction} className="max-w-xl space-y-6 rounded-xl border border-black/[0.06] bg-white p-6">
       <input type="hidden" name="type" value={type} />
       {initialValues && <input type="hidden" name="id" value={initialValues.id} />}
+      {isQuiz && <input type="hidden" name="quiz_questions_json" value={quizJson} />}
       {state?.error && (
         <p className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">{state.error}</p>
       )}
@@ -105,44 +198,92 @@ export function ContentItemForm({
         </div>
       )}
       {isQuiz && (
-        <>
-          <div className="border-t border-black/5 pt-4 mt-4">
-            <Label className="mb-2 block">Questions</Label>
-            <p className="text-xs text-slate-500 mb-3">
-              Add questions and options. Full editor will be available with Supabase. Example below.
-            </p>
-            <div className="space-y-4">
-              <div className="rounded-lg border border-black/10 p-3 space-y-2">
-                <Label htmlFor="q1" className="text-xs">Question 1</Label>
+        <div className="border-t border-black/5 pt-4 mt-4">
+          <div className="flex items-center justify-between mb-3">
+            <Label className="block">Questions</Label>
+            <Button type="button" variant="outline" size="sm" onClick={addQuestion} className="gap-1">
+              <Plus className="h-3.5 w-3.5" />
+              Add question
+            </Button>
+          </div>
+          <p className="text-xs text-slate-500 mb-4">
+            Add one or more questions. Each question needs at least two options; mark the correct one(s).
+          </p>
+          <div className="space-y-4">
+            {questions.map((q, qIndex) => (
+              <div key={q.id} className="rounded-lg border border-black/10 p-4 space-y-3">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-xs font-medium text-slate-500">Question {qIndex + 1}</span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50 h-8"
+                    onClick={() => removeQuestion(qIndex)}
+                    disabled={questions.length <= 1}
+                    aria-label="Remove question"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
                 <Input
-                  id="q1"
-                  name="question_1"
-                  defaultValue={
-                    initialValues && 'questions' in initialValues && initialValues.questions[0]
-                      ? initialValues.questions[0].question
-                      : ''
-                  }
+                  id={`${formId}-q-${qIndex}`}
                   placeholder="Question text..."
+                  value={q.question}
+                  onChange={(e) => setQuestionText(qIndex, e.target.value)}
                   className="w-full"
                 />
-                <div className="grid grid-cols-2 gap-2 mt-2">
-                  <Input name="q1_option_1_label" placeholder="Option A" defaultValue={initialValues && 'questions' in initialValues ? initialValues.questions[0]?.options[0]?.label ?? '' : ''} />
-                  <div className="flex items-center gap-2">
-                    <input type="checkbox" name="q1_option_1_correct" defaultChecked={!!(initialValues && 'questions' in initialValues && initialValues.questions[0]?.options[0]?.correct)} className="h-4 w-4" />
-                    <Label className="text-xs">Correct</Label>
-                  </div>
-                  <Input name="q1_option_2_label" placeholder="Option B" defaultValue={initialValues && 'questions' in initialValues ? initialValues.questions[0]?.options[1]?.label ?? '' : ''} />
-                  <div className="flex items-center gap-2">
-                    <input type="checkbox" name="q1_option_2_correct" defaultChecked={!!(initialValues && 'questions' in initialValues && initialValues.questions[0]?.options[1]?.correct)} className="h-4 w-4" />
-                    <Label className="text-xs">Correct</Label>
-                  </div>
+                <div className="space-y-2">
+                  {q.options.map((opt, oIndex) => (
+                    <div key={opt.id} className="flex items-center gap-2">
+                      <Input
+                        placeholder={`Option ${oIndex + 1}`}
+                        value={opt.label}
+                        onChange={(e) => setOption(qIndex, oIndex, 'label', e.target.value)}
+                        className="flex-1"
+                      />
+                      <label className="flex items-center gap-1.5 shrink-0 text-xs text-slate-600 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={opt.correct}
+                          onChange={(e) => setOption(qIndex, oIndex, 'correct', e.target.checked)}
+                          className="h-4 w-4 rounded border-slate-300"
+                        />
+                        Correct
+                      </label>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="text-slate-400 hover:text-red-600 h-8 w-8 p-0"
+                        onClick={() => removeOption(qIndex, oIndex)}
+                        disabled={q.options.length <= MIN_OPTIONS}
+                        aria-label="Remove option"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  ))}
+                  {q.options.length < MAX_OPTIONS && (
+                    <Button type="button" variant="outline" size="sm" onClick={() => addOption(qIndex)} className="gap-1">
+                      <Plus className="h-3.5 w-3.5" />
+                      Add option
+                    </Button>
+                  )}
                 </div>
               </div>
-            </div>
+            ))}
           </div>
-        </>
+          {quizPayload.length === 0 && (
+            <p className="text-xs text-amber-600 mt-2">
+              Add at least one question with text and at least two options to save the quiz.
+            </p>
+          )}
+        </div>
       )}
-      <Button type="submit">Save</Button>
+      <Button type="submit" disabled={isQuiz && quizPayload.length === 0}>
+        Save
+      </Button>
     </form>
   );
 }

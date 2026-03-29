@@ -3,6 +3,8 @@ import { getUser } from '@/lib/auth/getUser';
 import { DashboardShell } from '@/components/layout/dashboard-shell';
 import { ChatbotWidget } from '@/components/chatbot/chatbot-widget';
 
+export const dynamic = 'force-dynamic';
+
 export default async function DashboardLayout({
   children,
 }: Readonly<{

@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
-import { MOCK_WEBINARS } from '@/lib/data/mock-webinars';
+import { getWebinarById } from '@/lib/data/webinars';
 import { WebinarForm } from '../../webinar-form';
 import { updateWebinar } from '../../actions';
 
@@ -11,14 +11,14 @@ interface EditPageProps {
 
 export default async function AdminWebinarEditPage({ params }: EditPageProps): Promise<React.ReactElement> {
   const { id } = await params;
-  const webinar = MOCK_WEBINARS.find((w) => w.id === id);
+  const webinar = await getWebinarById(id);
   if (!webinar) notFound();
 
   return (
     <div>
       <Link
         href="/admin/webinars"
-        className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-teal-600 mb-6"
+        className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-teal-600 mb-6 bg-green-500"
       >
         <ArrowLeft className="h-4 w-4" strokeWidth={1.5} />
         Back to Webinars

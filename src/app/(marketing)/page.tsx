@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { siteConfig } from '@/config/site';
+import { getWebinars } from '@/lib/data/webinars';
 import { HeroSection } from '@/components/marketing/hero-section';
 import { TechMarqueeSection } from '@/components/marketing/tech-marquee-section';
 import { FeaturesSection } from '@/components/marketing/features-section';
@@ -18,14 +19,15 @@ export const metadata: Metadata = {
   description: siteConfig.description,
 };
 
-export default function HomePage(): React.ReactElement {
+export default async function HomePage(): Promise<React.ReactElement> {
+  const webinars = await getWebinars();
   return (
     <>
       <HeroSection />
       <TechMarqueeSection />
       <FeaturesSection />
       <DashboardPreviewSection />
-      <LatestWebinarsSection />
+      <LatestWebinarsSection webinars={webinars} />
       <ArchitectureSection />
       <PricingSection />
       <TestimonialsSection />

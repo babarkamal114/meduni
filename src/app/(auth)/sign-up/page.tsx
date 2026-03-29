@@ -11,9 +11,9 @@ export default async function SignUpPage({ searchParams }: SignUpPageProps): Pro
   const redirect = typeof params.redirect === 'string' ? params.redirect : undefined;
 
   return (
-    <Card className="w-full max-w-md">
+    <Card className="w-full max-w-md border-0 shadow-xl lg:border">
       <CardHeader className="space-y-1">
-        <CardTitle className="text-3xl font-bold">Sign Up</CardTitle>
+        <CardTitle className="text-2xl font-bold lg:text-3xl">Sign Up</CardTitle>
         <CardDescription>
           Create your MedUni account to get started
         </CardDescription>

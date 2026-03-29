@@ -1,31 +1,38 @@
 import { CertificateCard } from '@/components/dashboard/certificate-card';
-import { GraduationCap, Award } from 'lucide-react';
+import { GraduationCap } from 'lucide-react';
+import { getCertificationsWithDetails } from '@/lib/data/learning';
+import { getUser } from '@/lib/auth/getUser';
+import { format } from 'date-fns';
 
-export default function DashboardCertificatesPage(): React.ReactElement {
+export default async function DashboardCertificatesPage(): Promise<React.ReactElement> {
+  const user = await getUser();
+  const certs = user?.id ? await getCertificationsWithDetails(user.id) : [];
+
   return (
     <div className="px-6 lg:px-8 py-8 max-w-[1400px]">
       <div className="mb-8">
         <h1 className="font-serif text-3xl text-slate-900 mb-1">Certificates</h1>
         <p className="text-slate-600 text-sm">
-          Your earned certificates and CPD points
+          Your earned certificates
         </p>
       </div>
-      <div className="grid sm:grid-cols-2 gap-6">
-        <CertificateCard
-          title="Dermatology Masterclass"
-          completedDate="10 Jan 2025"
-          cpdPoints={2}
-          icon={<GraduationCap strokeWidth={1.5} />}
-          iconBg="bg-teal-50"
-        />
-        <CertificateCard
-          title="Diabetes Management"
-          completedDate="28 Dec 2024"
-          cpdPoints={3}
-          icon={<Award strokeWidth={1.5} />}
-          iconBg="bg-amber-50"
-        />
-      </div>
+      {certs.length === 0 ? (
+        <p className="text-sm text-slate-500 py-4">You have not earned any certificates yet. Complete modules and pass their quizzes to earn one.</p>
+      ) : (
+        <div className="grid sm:grid-cols-2 gap-6">
+          {certs.map((c) => (
+            <CertificateCard
+              key={c.module_id}
+              title={c.module_title}
+              completedDate={format(new Date(c.certified_at), 'd MMM yyyy')}
+              icon={<GraduationCap strokeWidth={1.5} />}
+              iconBg="bg-teal-50"
+              viewHref={`/dashboard/learning/certificate/${c.module_slug}`}
+              downloadHref={`/api/certificates/${c.module_slug}`}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

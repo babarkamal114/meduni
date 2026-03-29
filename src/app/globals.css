@@ -118,7 +118,7 @@
   }
 
   a {
-    @apply text-primary transition-colors;
+    @apply text-white transition-colors;
   }
 
   a:hover {

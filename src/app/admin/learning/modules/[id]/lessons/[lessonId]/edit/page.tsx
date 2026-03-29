@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
-import { getModuleById, getLesson } from '@/lib/mock/learning';
+import { getModuleById } from '@/lib/data/learning';
 import { LessonForm } from '../../../../lesson-form';
 import { updateLesson } from '../../../../../actions';
 
@@ -11,8 +11,8 @@ interface EditLessonPageProps {
 
 export default async function AdminLessonEditPage({ params }: EditLessonPageProps): Promise<React.ReactElement> {
   const { id: moduleId, lessonId } = await params;
-  const moduleData = getModuleById(moduleId);
-  const lesson = moduleData ? getLesson(moduleId, lessonId) : undefined;
+  const moduleData = await getModuleById(moduleId);
+  const lesson = moduleData?.lessons.find((l) => l.id === lessonId);
   if (!moduleData || !lesson) notFound();
 
   return (

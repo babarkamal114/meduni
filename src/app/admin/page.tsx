@@ -1,36 +1,42 @@
 import Link from 'next/link';
-import { MOCK_WEBINARS } from '@/lib/data/mock-webinars';
-import { MODULES, CASE_STUDIES, WEEKLY_MATERIALS } from '@/lib/mock/learning';
+import { getWebinars } from '@/lib/data/webinars';
+import { getModules, getCaseStudies, getContentItems } from '@/lib/data/learning';
 import { Video, BookOpen, GraduationCap, FileText } from 'lucide-react';
 
-const cards = [
-  {
-    href: '/admin/webinars',
-    label: 'Manage Webinars',
-    count: MOCK_WEBINARS.length,
-    icon: Video,
-  },
-  {
-    href: '/admin/learning/modules',
-    label: 'Manage Modules',
-    count: MODULES.length,
-    icon: BookOpen,
-  },
-  {
-    href: '/admin/learning/case-studies',
-    label: 'Manage Case Studies',
-    count: CASE_STUDIES.length,
-    icon: GraduationCap,
-  },
-  {
-    href: '/admin/content',
-    label: 'Manage Content',
-    count: WEEKLY_MATERIALS.length,
-    icon: FileText,
-  },
-];
+export default async function AdminDashboardPage(): Promise<React.ReactElement> {
+  const [webinars, modules, caseStudies, contentItems] = await Promise.all([
+    getWebinars(),
+    getModules(),
+    getCaseStudies(),
+    getContentItems(),
+  ]);
+  const cards = [
+    {
+      href: '/admin/webinars',
+      label: 'Manage Webinars',
+      count: webinars.length,
+      icon: Video,
+    },
+    {
+      href: '/admin/learning/modules',
+      label: 'Manage Modules',
+      count: modules.length,
+      icon: BookOpen,
+    },
+    {
+      href: '/admin/learning/case-studies',
+      label: 'Manage Case Studies',
+      count: caseStudies.length,
+      icon: GraduationCap,
+    },
+    {
+      href: '/admin/content',
+      label: 'Manage Content',
+      count: contentItems.length,
+      icon: FileText,
+    },
+  ];
 
-export default function AdminDashboardPage(): React.ReactElement {
   return (
     <div>
       <h1 className="font-serif text-3xl text-slate-900 mb-1">Admin</h1>

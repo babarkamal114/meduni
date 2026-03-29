@@ -23,7 +23,7 @@ export default async function AdminContentNewPage({ searchParams }: NewContentPa
       <h1 className="font-serif text-3xl text-slate-900 mb-1">
         Add {contentType === 'pdf' ? 'PDF' : contentType === 'video' ? 'Video' : 'Quiz'}
       </h1>
-      <p className="text-slate-600 text-sm mb-8">Create new content. Persistence will be enabled with Supabase.</p>
+      <p className="text-slate-600 text-sm mb-8">Create new content.</p>
       <ContentItemForm action={createContentItem} type={contentType} />
     </div>
   );

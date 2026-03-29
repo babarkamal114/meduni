@@ -15,6 +15,7 @@ export interface LearningCardProps {
   cta: 'Continue' | 'Start';
   ctaVariant?: 'primary' | 'secondary';
   href?: string;
+  certified?: boolean;
 }
 
 export function LearningCard({
@@ -27,6 +28,7 @@ export function LearningCard({
   cta,
   ctaVariant = 'secondary',
   href,
+  certified,
 }: LearningCardProps): React.ReactElement {
   const cardClassName = cn(
     'block rounded-2xl border border-black/5 bg-white p-5 transition-all duration-300',
@@ -36,11 +38,18 @@ export function LearningCard({
 
   const inner = (
     <>
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-4 flex items-center justify-between gap-2">
         <span className="text-xs font-mono uppercase tracking-wider text-teal-600">
           {type}
         </span>
-        <span className="text-xs font-mono text-slate-600">{meta}</span>
+        <div className="flex items-center gap-2">
+          {certified && (
+            <span className="inline-flex items-center rounded-md bg-teal-100 px-2 py-0.5 text-xs font-medium text-teal-800">
+              Certified
+            </span>
+          )}
+          <span className="text-xs font-mono text-slate-600">{meta}</span>
+        </div>
       </div>
       <h3 className="font-serif text-lg text-slate-800 mb-2">{title}</h3>
       <p className="text-xs text-slate-600 mb-4">{description}</p>

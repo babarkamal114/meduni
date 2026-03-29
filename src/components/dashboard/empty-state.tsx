@@ -8,6 +8,7 @@ interface EmptyStateProps {
   description: string;
   actionLabel?: string;
   actionHref?: string;
+  className?: string;
 }
 
 export function EmptyState({
@@ -16,9 +17,10 @@ export function EmptyState({
   description,
   actionLabel,
   actionHref,
+  className,
 }: EmptyStateProps): React.ReactElement {
   return (
-    <div className="flex flex-col items-center justify-center py-12 text-center">
+    <div className={`flex flex-col items-center justify-center py-12 text-center ${className ?? ''}`}>
       <div className="rounded-full bg-muted p-6 mb-4">
         <Icon className="h-12 w-12 text-muted-foreground" />
       </div>

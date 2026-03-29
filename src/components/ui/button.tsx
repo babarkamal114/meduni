@@ -31,7 +31,7 @@ const Button = React.forwardRef<
 
     const variants = {
       default:
-        'bg-teal-600 text-white hover:bg-teal-700',
+        'bg-teal-600 !text-white hover:bg-teal-700 hover:!text-white',
       secondary:
         'bg-slate-100 text-slate-700 hover:bg-slate-200',
       outline:
@@ -53,11 +53,19 @@ const Button = React.forwardRef<
       className
     );
 
-    if (asChild || href) {
+    if (asChild) {
+      const child = React.Children.only(children) as React.ReactElement<{ className?: string }>;
+      return React.cloneElement(child, {
+        ...child.props,
+        className: cn(buttonClasses, child.props?.className),
+        ref,
+      } as React.HTMLAttributes<HTMLElement>);
+    }
+    if (href) {
       return (
         <Link
           className={buttonClasses}
-          href={href || '#'}
+          href={href}
           ref={ref as React.ForwardedRef<HTMLAnchorElement>}
         >
           {children}

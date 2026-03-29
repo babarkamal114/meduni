@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
-import { getCaseStudyById } from '@/lib/mock/learning';
+import { getCaseStudyById } from '@/lib/data/learning';
 import { CaseStudyForm } from '../../case-study-form';
 import { updateCaseStudy } from '../../../actions';
 
@@ -11,7 +11,7 @@ interface EditPageProps {
 
 export default async function AdminCaseStudyEditPage({ params }: EditPageProps): Promise<React.ReactElement> {
   const { id } = await params;
-  const caseStudy = getCaseStudyById(id);
+  const caseStudy = await getCaseStudyById(id);
   if (!caseStudy) notFound();
 
   return (

@@ -7,6 +7,7 @@ import { FormMessage } from './form-message';
 import { SubmitButton } from './submit-button';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
+import { ApiErrorAlert } from '@/components/ui/api-error-alert';
 import { cn } from '@/lib/utils/cn';
 
 interface ContactFormProps {
@@ -45,7 +46,13 @@ export function ContactForm({ action }: ContactFormProps): React.ReactElement {
   };
 
   return (
-    <Card className="border border-gray-200">
+    <>
+      <ApiErrorAlert
+        message={error ?? undefined}
+        onDismiss={() => setError(null)}
+        autoDismissMs={6000}
+      />
+      <Card className="border border-gray-200">
       <CardContent className="p-6 md:p-8">
         <form
           id="contact-form"
@@ -118,7 +125,6 @@ export function ContactForm({ action }: ContactFormProps): React.ReactElement {
             )}
           </div>
 
-          {error && <FormMessage message={error} type="error" />}
           {success && <FormMessage message={success} type="success" />}
 
           <SubmitButton
@@ -133,6 +139,7 @@ export function ContactForm({ action }: ContactFormProps): React.ReactElement {
         </form>
       </CardContent>
     </Card>
+    </>
   );
 }
 

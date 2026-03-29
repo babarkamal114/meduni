@@ -8,6 +8,6 @@ export type User = Database['public']['Tables']['profiles']['Row'] & {
   email: string;
   full_name: string | null;
   avatar_url: string | null;
-  role: 'student' | 'admin';
+  role: 'member' | 'admin';
 };
 

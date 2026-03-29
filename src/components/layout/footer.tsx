@@ -19,8 +19,9 @@ export function Footer(): React.ReactElement {
               </span>
             </div>
             <p className="text-slate-600 text-sm leading-relaxed max-w-sm">
-              Next-generation medical education platform. Expert-led webinars,
-              AI-powered learning tools, and a seamless digital experience.
+              Expert-led clinical medicine webinars for medical students,
+              designed to bridge textbook learning with practical exam-ready
+              performance.
             </p>
           </div>
           <div>
@@ -44,12 +45,12 @@ export function Footer(): React.ReactElement {
               Contact
             </h4>
             <div className="space-y-3">
-              <a
+              <Link
                 href={`mailto:${siteConfig.contactEmail}`}
                 className="block text-sm text-slate-600 hover:text-teal-600 transition-colors"
               >
                 {siteConfig.contactEmail}
-              </a>
+              </Link>
               <span className="block text-sm text-slate-500">United Kingdom</span>
               <span className="block text-sm text-slate-500">GDPR Compliant</span>
             </div>
@@ -61,12 +62,12 @@ export function Footer(): React.ReactElement {
           </p>
           <p className="text-xs text-slate-500">
             Built by{' '}
-            <a
+            <Link
               href="#"
               className="text-teal-600 hover:text-teal-700 transition-colors"
             >
               DevBeam
-            </a>
+            </Link>
           </p>
         </div>
       </div>

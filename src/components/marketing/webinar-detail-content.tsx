@@ -6,13 +6,13 @@ import { StatusBadge } from '@/components/dashboard/status-badge';
 import { TicketPurchaseModal } from '@/components/dashboard/ticket-purchase-modal';
 import type { TicketPurchaseModalData } from '@/components/dashboard/ticket-purchase-modal';
 import { GlowButton } from '@/components/marketing/glow-button';
-import type { MockWebinar } from '@/lib/data/mock-webinars';
-import { getCardGradient } from '@/lib/data/mock-webinars';
+import type { Webinar } from '@/lib/data/webinars';
+import { formatDuration } from '@/lib/utils/formatDuration';
 import { getJoinWebinarUrl } from '@/app/dashboard/webinars/actions';
 import { User, Calendar, Clock, ArrowLeft, Video, ExternalLink } from 'lucide-react';
 
 interface WebinarDetailContentProps {
-  webinar: MockWebinar;
+  webinar: Webinar;
   hasAccess: boolean;
   isLoggedIn: boolean;
 }
@@ -84,7 +84,7 @@ export function WebinarDetailContent({
 
         <div className="card rounded-2xl overflow-hidden border border-black/5">
           <div
-            className={`h-32 bg-gradient-to-br ${getCardGradient(webinar.id)} flex items-center justify-center`}
+            className={`h-32 bg-gradient-to-br ${webinar.gradientClass} flex items-center justify-center`}
           >
             <Video className="h-14 w-14 text-slate-600" strokeWidth={1} />
           </div>
@@ -117,7 +117,7 @@ export function WebinarDetailContent({
               </div>
               <div className="flex items-center gap-3 text-slate-600">
                 <Clock className="h-4 w-4 shrink-0" strokeWidth={1.5} />
-                <span className="text-sm">{webinar.duration}</span>
+                <span className="text-sm">{formatDuration(webinar.duration)}</span>
               </div>
             </div>
 
@@ -125,7 +125,7 @@ export function WebinarDetailContent({
               <div className="flex items-center justify-between">
                 <span className="text-sm text-slate-500">Price</span>
                 <span className="font-serif text-2xl text-teal-600">
-                  {webinar.price}
+                  £{webinar.price}
                 </span>
               </div>
             </div>

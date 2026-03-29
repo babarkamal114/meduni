@@ -1,10 +1,30 @@
 import Link from 'next/link';
-import { MOCK_WEBINARS } from '@/lib/data/mock-webinars';
+import { getWebinars } from '@/lib/data/webinars';
 import { AdminWebinarRow } from './admin-webinar-row';
 
-export default function AdminWebinarsPage(): React.ReactElement {
+interface AdminWebinarsPageProps {
+  searchParams: Promise<{ created?: string; updated?: string; deleted?: string }>;
+}
+
+export default async function AdminWebinarsPage({ searchParams }: AdminWebinarsPageProps): Promise<React.ReactElement> {
+  const params = await searchParams;
+  const webinars = await getWebinars();
+  const successMessage =
+    params.created === '1'
+      ? 'Webinar created.'
+      : params.updated === '1'
+        ? 'Webinar updated.'
+        : params.deleted === '1'
+          ? 'Webinar deleted.'
+          : null;
+
   return (
     <div>
+      {successMessage && (
+        <p className="mb-6 rounded-lg bg-teal-50 px-4 py-3 text-sm font-medium text-teal-800" role="status">
+          {successMessage}
+        </p>
+      )}
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="font-serif text-3xl text-slate-900 mb-1">Webinars</h1>
@@ -29,7 +49,7 @@ export default function AdminWebinarsPage(): React.ReactElement {
             </tr>
           </thead>
           <tbody>
-            {MOCK_WEBINARS.map((w) => (
+            {webinars.map((w) => (
               <AdminWebinarRow key={w.id} webinar={w} />
             ))}
           </tbody>

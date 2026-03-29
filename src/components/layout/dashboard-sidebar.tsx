@@ -9,6 +9,7 @@ import {
   BookOpen,
   Ticket,
   GraduationCap,
+  Activity,
   Settings,
   LogOut,
   Shield,
@@ -21,6 +22,7 @@ const navItems = [
   { href: '/dashboard/learning', label: 'My Learning', icon: BookOpen },
   { href: '/dashboard/tickets', label: 'My Tickets', icon: Ticket },
   { href: '/dashboard/certificates', label: 'Certificates', icon: GraduationCap },
+  { href: '/dashboard/activity', label: 'Activity', icon: Activity },
 ];
 
 interface DashboardSidebarProps {
@@ -28,7 +30,7 @@ interface DashboardSidebarProps {
     full_name: string | null;
     email: string;
     avatar_url: string | null;
-    role?: string;
+    role?: 'member' | 'admin';
   } | null;
   isOpen: boolean;
   onClose: () => void;
@@ -95,7 +97,7 @@ export function DashboardSidebar({
                 </Link>
               );
             })}
-            {user?.role === 'admin' && (
+            {(user?.role?.toString().toLowerCase() === 'admin') && (
               <Link
                 href="/admin"
                 onClick={onClose}

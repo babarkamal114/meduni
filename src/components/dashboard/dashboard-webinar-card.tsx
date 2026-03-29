@@ -1,6 +1,7 @@
 'use client';
 
 import { cn } from '@/lib/utils/cn';
+import { formatDuration } from '@/lib/utils/formatDuration';
 import { StatusBadge } from '@/components/dashboard/status-badge';
 import { Button } from '@/components/ui/button';
 import type { ReactNode } from 'react';
@@ -74,10 +75,10 @@ export function DashboardWebinarCard({
       <div className="p-5 bg-gradient-to-b from-white/80 to-slate-50/50">
         <h3 className="font-serif text-lg text-slate-800 mb-1">{title}</h3>
         <p className="text-xs text-slate-600 mb-3">
-          {expert} · {duration}
+          {expert} · {formatDuration(duration)}
         </p>
         <div className="flex items-center justify-between">
-          <span className="font-serif text-xl text-teal-600">{price}</span>
+          <span className="font-serif text-xl text-teal-600">£{price}</span>
           <Button
             size="sm"
             className="text-xs"

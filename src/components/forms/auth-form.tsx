@@ -1,19 +1,17 @@
 'use client';
 
-import { useState, useTransition } from 'react';
-import { Input } from '@/components/ui/input';
-import { FormMessage } from './form-message';
+import { useState } from 'react';
+import { useMutation } from '@tanstack/react-query';
 import { SubmitButton } from './submit-button';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
+import { FormField } from './form-field';
+import { ApiErrorAlert } from '@/components/ui/api-error-alert';
 import Link from 'next/link';
-import { cn } from '@/lib/utils/cn';
+import type { AuthActionResult } from '@/types/actions';
+import { isRedirectError } from 'next/dist/client/components/redirect-error';
 
 interface AuthFormProps {
-  action: (formData: FormData) => Promise<
-    | { success: true }
-    | { success: false; error: string; fieldErrors?: Record<string, string[]> }
-  >;
+  action: (formData: FormData) => Promise<AuthActionResult>;
   mode: 'signin' | 'signup';
   redirect?: string | null;
   oauthProviders?: {
@@ -29,88 +27,79 @@ export function AuthForm({
   oauthProviders = { google: true, apple: true },
 }: AuthFormProps): React.ReactElement {
   const [error, setError] = useState<string | null>(null);
-  const [fieldErrors, setFieldErrors] = useState<
-    Record<string, string[]> | undefined
-  >(undefined);
-  const [isPending, startTransition] = useTransition();
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string[]> | undefined>(undefined);
+
+  const mutation = useMutation({
+    mutationFn: (formData: FormData) => action(formData),
+  });
 
   const handleSubmit = async (formData: FormData) => {
     setError(null);
     setFieldErrors(undefined);
-
-    startTransition(async () => {
-      const result = await action(formData);
-
+    try {
+      const result = await mutation.mutateAsync(formData);
       if (!result.success) {
         setError(result.error);
         setFieldErrors(result.fieldErrors);
       }
-    });
+    } catch (e) {
+      if (isRedirectError(e)) throw e;
+      setError('Something went wrong. Please try again.');
+    }
   };
 
   const handleOAuthSignIn = async (provider: 'google' | 'apple') => {
-    // OAuth will be handled via server action in future
-    // For now, this is a placeholder
     setError(`OAuth sign-in with ${provider} is not yet implemented`);
   };
 
+  const isPending = mutation.isPending;
+
   return (
-    <form action={handleSubmit} className="space-y-4">
+    <>
+      <ApiErrorAlert
+        message={error?.trim() ? error : null}
+        onDismiss={() => setError(null)}
+        autoDismissMs={6000}
+      />
+      <form action={handleSubmit} className="space-y-4">
       {redirectUrl && (
         <input type="hidden" name="redirect" value={redirectUrl} />
       )}
       {mode === 'signup' && (
-        <div className="space-y-2">
-          <Label htmlFor="full_name">Full Name</Label>
-          <Input
-            id="full_name"
-            name="full_name"
-            type="text"
-            placeholder="John Doe"
-            error={!!fieldErrors?.full_name}
-            disabled={isPending}
-          />
-          {fieldErrors?.full_name && (
-            <FormMessage message={fieldErrors.full_name[0]} />
-          )}
-        </div>
+        <FormField
+          id="full_name"
+          name="full_name"
+          label="Full Name"
+          type="text"
+          placeholder="John Doe"
+          disabled={isPending}
+          error={fieldErrors?.full_name?.[0]}
+        />
       )}
 
-      <div className="space-y-2">
-        <Label htmlFor="email">Email</Label>
-        <Input
-          id="email"
-          name="email"
-          type="email"
-          placeholder="you@example.com"
-          required
-          error={!!fieldErrors?.email}
-          disabled={isPending}
-        />
-        {fieldErrors?.email && (
-          <FormMessage message={fieldErrors.email[0]} />
-        )}
-      </div>
+      <FormField
+        id="email"
+        name="email"
+        label="Email"
+        type="email"
+        placeholder="you@example.com"
+        required
+        disabled={isPending}
+        error={fieldErrors?.email?.[0]}
+      />
 
-      <div className="space-y-2">
-        <Label htmlFor="password">Password</Label>
-        <Input
-          id="password"
-          name="password"
-          type="password"
-          placeholder="••••••••"
-          required
-          error={!!fieldErrors?.password}
-          disabled={isPending}
-        />
-        {fieldErrors?.password && (
-          <FormMessage message={fieldErrors.password[0]} />
-        )}
-      </div>
+      <FormField
+        id="password"
+        name="password"
+        label="Password"
+        type="password"
+        placeholder="••••••••"
+        required
+        disabled={isPending}
+        error={fieldErrors?.password?.[0]}
+      />
 
-      {error && <FormMessage message={error} />}
-
-      <SubmitButton className="w-full" disabled={isPending}>
+      <SubmitButton className="w-full" disabled={isPending} pending={isPending}>
         {mode === 'signin' ? 'Sign In' : 'Create Account'}
       </SubmitButton>
 
@@ -205,6 +194,6 @@ export function AuthForm({
         </>
       )}
     </form>
+    </>
   );
 }
-

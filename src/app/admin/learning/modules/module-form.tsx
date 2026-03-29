@@ -1,7 +1,7 @@
 'use client';
 
 import { useFormState } from 'react-dom';
-import type { ModuleItem } from '@/lib/mock/learning';
+import type { ModuleItem } from '@/lib/data/learning';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -46,7 +46,7 @@ export function ModuleForm({ action, initialValues }: ModuleFormProps): React.Re
           id="slug"
           name="slug"
           required
-          defaultValue={initialValues?.id}
+          defaultValue={initialValues?.slug ?? initialValues?.id}
           placeholder="cardiology"
           className="w-full"
         />
@@ -61,6 +61,20 @@ export function ModuleForm({ action, initialValues }: ModuleFormProps): React.Re
           placeholder="ECG interpretation, heart failure management..."
           className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm min-h-[80px]"
         />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="pass_threshold_percent">Pass threshold (%)</Label>
+        <Input
+          id="pass_threshold_percent"
+          name="pass_threshold_percent"
+          type="number"
+          min={1}
+          max={100}
+          defaultValue={initialValues?.passThresholdPercent ?? 80}
+          placeholder="80"
+          className="w-24"
+        />
+        <p className="text-xs text-slate-500">Minimum score required to pass module quizzes (default 80).</p>
       </div>
       <SubmitButton />
     </form>

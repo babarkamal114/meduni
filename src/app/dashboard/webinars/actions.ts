@@ -1,11 +1,17 @@
 'use server';
 
 import { cookies } from 'next/headers';
-import { getWebinarBySlug } from '@/lib/data/mock-webinars';
+import { getUser } from '@/lib/auth/getUser';
+import {
+  getWebinarBySlug,
+  getPurchasedWebinarSlugsForUser,
+  registerUserForWebinar,
+} from '@/lib/data/webinars';
+import {
+  createWebinarPaymentIntent,
+  grantAccessAfterPaymentFromIntent,
+} from '@/lib/stripe/server';
 
-const MOCK_ZOOM_JOIN_URL = 'https://zoom.us/j/123456789';
-const MOCK_REPLAY_URL =
-  'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
 const PURCHASED_WEBINARS_COOKIE = 'meduni_purchased_webinars';
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
 
@@ -13,15 +19,21 @@ export type JoinWebinarResult = { url: string } | { error: string };
 export type ReplayUrlResult = { url: string } | { error: string };
 export type PurchaseTicketResult = { success: true; slug: string } | { success: false; error: string };
 
-async function getPurchasedSlugs(): Promise<string[]> {
+async function getCookiePurchasedSlugs(): Promise<string[]> {
   const cookieStore = await cookies();
   const raw = cookieStore.get(PURCHASED_WEBINARS_COOKIE)?.value;
   if (!raw) return [];
   return raw.split(',').filter(Boolean);
 }
 
-function hasAccess(webinarSlug: string, staticPurchased: boolean, cookieSlugs: string[]): boolean {
-  return staticPurchased || cookieSlugs.includes(webinarSlug);
+async function hasAccessToSlug(webinarSlug: string): Promise<boolean> {
+  const user = await getUser();
+  if (user) {
+    const dbSlugs = await getPurchasedWebinarSlugsForUser(user.id);
+    if (dbSlugs.includes(webinarSlug)) return true;
+  }
+  const cookieSlugs = await getCookiePurchasedSlugs();
+  return cookieSlugs.includes(webinarSlug);
 }
 
 const JOIN_WINDOW_MINUTES_BEFORE = 15;
@@ -36,16 +48,32 @@ function isWithinJoinWindow(scheduledAt: string | null): boolean {
 }
 
 export async function getPurchasedWebinarSlugs(): Promise<string[]> {
-  return getPurchasedSlugs();
+  const user = await getUser();
+  if (user) {
+    const dbSlugs = await getPurchasedWebinarSlugsForUser(user.id);
+    const cookieSlugs = await getCookiePurchasedSlugs();
+    return [...new Set([...dbSlugs, ...cookieSlugs])];
+  }
+  return getCookiePurchasedSlugs();
 }
 
 export async function purchaseWebinarTicket(webinarSlug: string): Promise<PurchaseTicketResult> {
-  const webinar = getWebinarBySlug(webinarSlug);
+  const webinar = await getWebinarBySlug(webinarSlug);
   if (!webinar) return { success: false, error: 'Webinar not found' };
+
+  const user = await getUser();
   const cookieStore = await cookies();
-  const current = await getPurchasedSlugs();
-  if (current.includes(webinarSlug)) return { success: true, slug: webinarSlug };
-  const next = [...current, webinarSlug];
+  const currentCookie = await getCookiePurchasedSlugs();
+
+  if (user) {
+    const dbSlugs = await getPurchasedWebinarSlugsForUser(user.id);
+    if (dbSlugs.includes(webinarSlug)) return { success: true, slug: webinarSlug };
+    const { error } = await registerUserForWebinar(user.id, webinar.id);
+    if (error) return { success: false, error };
+  }
+
+  if (currentCookie.includes(webinarSlug)) return { success: true, slug: webinarSlug };
+  const next = [...currentCookie, webinarSlug];
   cookieStore.set(PURCHASED_WEBINARS_COOKIE, next.join(','), {
     path: '/',
     maxAge: COOKIE_MAX_AGE,
@@ -56,25 +84,27 @@ export async function purchaseWebinarTicket(webinarSlug: string): Promise<Purcha
 }
 
 export async function getJoinWebinarUrl(webinarSlug: string): Promise<JoinWebinarResult> {
-  const webinar = getWebinarBySlug(webinarSlug);
+  const webinar = await getWebinarBySlug(webinarSlug);
   if (!webinar) return { error: 'Webinar not found' };
   if (webinar.status === 'recorded') return { error: 'Webinar has ended. Watch the replay.' };
-  const cookieSlugs = await getPurchasedSlugs();
-  if (!hasAccess(webinarSlug, webinar.purchased, cookieSlugs))
-    return { error: 'You need a ticket to join this webinar.' };
+  const hasAccess = await hasAccessToSlug(webinarSlug);
+  if (!hasAccess) return { error: 'You need a ticket to join this webinar.' };
   if (!isWithinJoinWindow(webinar.scheduledAt))
     return { error: 'Join link is available 15 minutes before start time.' };
-  return { url: MOCK_ZOOM_JOIN_URL };
+  const url = webinar.joinUrl?.trim();
+  if (!url) return { error: 'Join link is not available yet.' };
+  return { url };
 }
 
 export async function getReplayUrl(webinarSlug: string): Promise<ReplayUrlResult> {
-  const webinar = getWebinarBySlug(webinarSlug);
+  const webinar = await getWebinarBySlug(webinarSlug);
   if (!webinar) return { error: 'Webinar not found' };
-  const cookieSlugs = await getPurchasedSlugs();
-  if (!hasAccess(webinarSlug, webinar.purchased, cookieSlugs))
-    return { error: 'You need a ticket to watch this replay.' };
+  const hasAccess = await hasAccessToSlug(webinarSlug);
+  if (!hasAccess) return { error: 'You need a ticket to watch this replay.' };
   if (!webinar.hasReplay) return { error: 'Replay is not available yet.' };
-  return { url: MOCK_REPLAY_URL };
+  const url = webinar.replayUrl?.trim();
+  if (!url) return { error: 'Replay is not available yet.' };
+  return { url };
 }
 
 export async function saveReplayProgress(
@@ -83,4 +113,24 @@ export async function saveReplayProgress(
 ): Promise<{ ok: boolean }> {
   await Promise.resolve();
   return { ok: true };
+}
+
+export type CreatePaymentIntentActionResult =
+  | { clientSecret: string }
+  | { error: string };
+
+export async function createWebinarPaymentIntentAction(
+  slug: string
+): Promise<CreatePaymentIntentActionResult> {
+  return createWebinarPaymentIntent(slug);
+}
+
+export type GrantAccessResult =
+  | { success: true; slug: string }
+  | { success: false; error: string };
+
+export async function grantAccessAfterPayment(
+  paymentIntentId: string
+): Promise<GrantAccessResult> {
+  return grantAccessAfterPaymentFromIntent(paymentIntentId);
 }

@@ -8,7 +8,7 @@ export async function requireAdmin() {
     redirect('/sign-in');
   }
 
-  if (user.role !== 'admin') {
+  if (user.role?.toString().toLowerCase() !== 'admin') {
     redirect('/dashboard');
   }
 

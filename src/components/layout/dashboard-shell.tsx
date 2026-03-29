@@ -10,7 +10,7 @@ interface DashboardShellProps {
     email: string;
     full_name: string | null;
     avatar_url: string | null;
-    role: string;
+    role: 'member' | 'admin';
   } | null;
   children: React.ReactNode;
 }

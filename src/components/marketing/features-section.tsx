@@ -1,10 +1,8 @@
 import {
-  Video,
-  PlayCircle,
-  BookOpen,
-  Sparkles,
-  CreditCard,
-  ShieldCheck,
+  Stethoscope,
+  FileText,
+  BadgeCheck,
+  Globe2,
 } from 'lucide-react';
 import { Reveal } from '@/components/marketing/reveal';
 import { FeatureCard } from '@/components/marketing/feature-card';
@@ -12,44 +10,32 @@ import { SectionHeading } from '@/components/marketing/section-heading';
 
 const FEATURES = [
   {
-    icon: <Video className="w-7 h-7 text-teal-600" />,
-    title: 'Live Webinars',
+    icon: <Stethoscope className="w-7 h-7 text-teal-600" />,
+    title: 'Learn from Experts',
     description:
-      'Host and sell expert-led medical webinars with integrated Zoom, automated reminders, and real-time attendance tracking.',
+      'UK-trained NHS consultants and specialists make complex clinical topics clear, practical, and relevant.',
   },
   {
-    icon: <PlayCircle className="w-7 h-7 text-teal-600" />,
-    title: 'On-Demand Replays',
+    icon: <FileText className="w-7 h-7 text-teal-600" />,
+    title: 'Case-Based Curriculum',
     description:
-      'Missed a session? Purchase on-demand access and stream recordings securely from your personalised dashboard.',
+      'Real patient cases and evidence-based clinical algorithms help you apply knowledge with confidence.',
   },
   {
-    icon: <BookOpen className="w-7 h-7 text-teal-600" />,
-    title: 'Weekly Content',
+    icon: <BadgeCheck className="w-7 h-7 text-teal-600" />,
+    title: 'Exam-Focused Strategies',
     description:
-      'Case studies, quizzes, lecture summaries, and downloadable resources published weekly to keep learning continuous.',
+      'Targeted preparation for OSCEs, clinical presentations, and MCQs with practical strategies that work.',
   },
   {
-    icon: <Sparkles className="w-7 h-7 text-teal-600" />,
-    title: 'AI Chatbot',
+    icon: <Globe2 className="w-7 h-7 text-teal-600" />,
+    title: 'Global Community',
     description:
-      '24/7 AI-powered support for FAQs, technical help, and AI-generated webinar summaries — always available.',
-  },
-  {
-    icon: <CreditCard className="w-7 h-7 text-teal-600" />,
-    title: 'Secure Payments',
-    description:
-      'Stripe and PayPal integration with real-time validation, automated receipts, and branded email confirmations.',
-  },
-  {
-    icon: <ShieldCheck className="w-7 h-7 text-teal-600" />,
-    title: 'GDPR & Security',
-    description:
-      'Row-level security, JWT tokens, CSRF/XSS prevention, and full UK data protection compliance built-in.',
+      'Join students from the UK, the Middle East, and beyond with accessible pricing and Zoom delivery.',
   },
 ];
 
-const DELAYS = ['0.05s', '0.1s', '0.15s', '0.2s', '0.25s', '0.3s'];
+const DELAYS = ['0.05s', '0.1s', '0.15s', '0.2s'];
 
 export function FeaturesSection(): React.ReactElement {
   return (
@@ -57,13 +43,13 @@ export function FeaturesSection(): React.ReactElement {
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <Reveal className="max-w-2xl mb-20">
           <SectionHeading
-            eyebrow="Platform Features"
+            eyebrow="What makes our webinars unique"
             title={
               <>
-                Everything you need to <span className="italic grad-text">teach & learn</span>
+                Expert teaching built for <span className="italic grad-text">clinical progress</span>
               </>
             }
-            description="A comprehensive suite of tools built on modern infrastructure, designed for medical education excellence."
+            description="Practical, focused sessions designed to bridge classroom theory with real-world clinical performance."
           />
         </Reveal>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">

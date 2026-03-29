@@ -1,12 +1,14 @@
 'use server';
 
 import { createServerClient } from '@/lib/supabase/server';
-import { signUpSchema, type SignUpInput } from '@/lib/validations/auth';
+import { createAdminClient } from '@/lib/supabase/admin';
+import { signUpSchema, formatZodFieldErrors } from '@/lib/validations/auth';
 import { redirect } from 'next/navigation';
-
-export type RegisterResult =
-  | { success: true }
-  | { success: false; error: string; fieldErrors?: Record<string, string[]> };
+import { randomBytes } from 'crypto';
+import { sendEmail } from '@/lib/email/resend';
+import { getWelcomeEmailHtml } from '@/lib/email/templates/welcome-email';
+import { getVerificationEmailHtml } from '@/lib/email/templates/verification-email';
+import type { AuthActionResult } from '@/types/actions';
 
 function getValidRedirect(formData: FormData): string | null {
   const raw = formData.get('redirect');
@@ -18,30 +20,20 @@ function getValidRedirect(formData: FormData): string | null {
 
 export async function registerAction(
   formData: FormData
-): Promise<RegisterResult> {
+): Promise<AuthActionResult> {
   const rawData = {
     email: formData.get('email'),
     password: formData.get('password'),
     full_name: formData.get('full_name'),
   };
 
-  // Validate input
   const validation = signUpSchema.safeParse(rawData);
 
   if (!validation.success) {
-    const fieldErrors: Record<string, string[]> = {};
-    validation.error.issues.forEach((error) => {
-      const field = error.path[0] as string;
-      if (!fieldErrors[field]) {
-        fieldErrors[field] = [];
-      }
-      fieldErrors[field].push(error.message);
-    });
-
     return {
       success: false,
-      error: 'Validation failed',
-      fieldErrors,
+      error: '',
+      fieldErrors: formatZodFieldErrors(validation.error),
     };
   }
 
@@ -68,14 +60,44 @@ export async function registerAction(
     };
   }
 
-  // If email confirmation is required, redirect to verification page
-  if (data.user && !data.session) {
-    redirect('/verify-email');
+  if (data.user) {
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const token = randomBytes(32).toString('hex');
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+
+    const admin = createAdminClient();
+    await (admin as any).from('email_verification_tokens').insert({
+      user_id: data.user.id,
+      token,
+      expires_at: expiresAt,
+    });
+
+    const verifyUrl = `${appUrl}/api/verify-email?token=${token}`;
+
+    const from = process.env.RESEND_FROM || 'onboarding@resend.dev';
+    const welcomeResult = await sendEmail({
+      to: email,
+      subject: 'Welcome to MedUni',
+      html: getWelcomeEmailHtml({ fullName: full_name ?? null, email }),
+      from,
+    });
+    const verifyResult = await sendEmail({
+      to: email,
+      subject: 'Verify your email – MedUni',
+      html: getVerificationEmailHtml({ verifyUrl, fullName: full_name ?? null }),
+      from,
+    });
+    if (process.env.NODE_ENV === 'development' && (!welcomeResult.success || !verifyResult.success)) {
+      console.error('[Resend] Signup emails:', { welcome: welcomeResult.success, verify: verifyResult.success, welcomeError: welcomeResult.error?.message, verifyError: verifyResult.error?.message });
+    }
   }
 
-  // If session exists, redirect to provided path or dashboard
-  if (data.session) {
+  if (data.user && data.session) {
     redirect(redirectTo);
+  }
+
+  if (data.user && !data.session) {
+    redirect('/verify-email');
   }
 
   return { success: true };

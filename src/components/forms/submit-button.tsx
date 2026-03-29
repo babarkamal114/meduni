@@ -7,14 +7,18 @@ import { Loader2 } from 'lucide-react';
 interface SubmitButtonProps
   extends Omit<React.ComponentProps<typeof Button>, 'type'> {
   children: React.ReactNode;
+  /** When provided, overrides useFormStatus pending (e.g. for client-side mutations). */
+  pending?: boolean;
 }
 
 export function SubmitButton({
   children,
   disabled: disabledProp,
+  pending: pendingProp,
   ...rest
 }: SubmitButtonProps): React.ReactElement {
-  const { pending } = useFormStatus();
+  const { pending: formPending } = useFormStatus();
+  const pending = pendingProp ?? formPending;
 
   return (
     <Button

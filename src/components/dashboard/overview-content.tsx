@@ -4,89 +4,44 @@ import Link from 'next/link';
 import { StatsCard } from '@/components/dashboard/stats-card';
 import { UpcomingWebinarRow } from '@/components/dashboard/upcoming-webinar-row';
 import { LearningProgressBlock } from '@/components/dashboard/learning-progress-block';
-import { RecentActivityList } from '@/components/dashboard/recent-activity-list';
+import { ActivityFeed } from '@/components/dashboard/activity-feed';
 import { Button } from '@/components/ui/button';
-import { Heart, Baby, Brain, Check, CreditCard, Play } from 'lucide-react';
+import { Heart, Baby } from 'lucide-react';
+import type { Webinar } from '@/lib/data/webinars';
+import type { RecentActivityItem } from '@/lib/data/dashboard';
+
+export interface DashboardStatsProps {
+  webinarsAttended: number;
+  learningHoursLabel: string;
+  quizAveragePercent: number | null;
+  activeTickets: number;
+  activeTicketsUpcoming?: number;
+}
 
 interface OverviewContentProps {
   userName: string | null;
+  stats: DashboardStatsProps;
+  upcomingWebinars: Webinar[];
+  progressItems: { label: string; percent: number }[];
+  certificateCount: number;
+  activities: RecentActivityItem[];
 }
 
-export function OverviewContent({ userName }: OverviewContentProps): React.ReactElement {
-  const upcoming = [
-    {
-      slug: 'cardiology-update-2025',
-      title: 'Cardiology Update 2025',
-      date: 'Tomorrow, 7:00 PM',
-      expert: 'Dr. James Carter',
-      duration: '1.5 hours',
-      price: '£29.99',
-      type: 'live' as const,
-      statusLabel: 'Live',
-    },
-    {
-      slug: 'paediatric-emergencies',
-      title: 'Paediatric Emergencies',
-      date: 'Fri 24 Jan, 6:30 PM',
-      expert: 'Dr. Lisa Nguyen',
-      duration: '2 hours',
-      price: '£34.99',
-      type: 'upcoming' as const,
-      statusLabel: 'In 5 days',
-    },
-    {
-      slug: 'mental-health-primary-care',
-      title: 'Mental Health in Primary Care',
-      date: 'Mon 3 Feb, 7:00 PM',
-      expert: 'Prof. Alan Brooks',
-      duration: '1.5 hours',
-      price: '£24.99',
-      type: 'upcoming' as const,
-      statusLabel: 'In 2 weeks',
-    },
-  ];
-
-  const progressItems = [
-    { label: 'Cardiology Module', percent: 85 },
-    { label: 'Neurology Basics', percent: 62 },
-    { label: 'Paediatrics Review', percent: 40 },
-    { label: 'Dermatology Cases', percent: 95 },
-  ];
-
-  const activities = [
-    {
-      icon: <Check className="h-4 w-4 text-green-500" strokeWidth={2} />,
-      iconBg: 'bg-green-50',
-      title: (
-        <>
-          <strong>Completed</strong> Dermatology Case Study Quiz
-        </>
-      ),
-      meta: 'Score: 92% · 2 hours ago',
-    },
-    {
-      icon: <CreditCard className="h-4 w-4 text-teal-500" strokeWidth={2} />,
-      iconBg: 'bg-teal-50',
-      title: (
-        <>
-          <strong>Purchased</strong> ticket for Cardiology Update 2025
-        </>
-      ),
-      meta: '£29.99 · Yesterday',
-    },
-    {
-      icon: <Play className="h-4 w-4 text-indigo-500" strokeWidth={2} />,
-      iconBg: 'bg-indigo-50',
-      title: (
-        <>
-          <strong>Watched</strong> replay: Emergency Medicine Masterclass
-        </>
-      ),
-      meta: 'Duration: 1h 45m · 3 days ago',
-    },
-  ];
-
+export function OverviewContent({
+  userName,
+  stats,
+  upcomingWebinars,
+  progressItems,
+  certificateCount,
+  activities,
+}: OverviewContentProps): React.ReactElement {
   const name = userName?.split(' ')[0] ?? 'there';
+  const quizDisplay =
+    stats.quizAveragePercent != null ? `${stats.quizAveragePercent}%` : '—';
+  const activeBadge =
+    stats.activeTicketsUpcoming != null && stats.activeTicketsUpcoming > 0
+      ? `${stats.activeTicketsUpcoming} upcoming`
+      : undefined;
 
   return (
     <>
@@ -101,27 +56,24 @@ export function OverviewContent({ userName }: OverviewContentProps): React.React
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <StatsCard
             title="Webinars Attended"
-            value={12}
+            value={stats.webinarsAttended}
             icon="Video"
-            badge="+3 this month"
           />
           <StatsCard
             title="Learning Hours"
-            value="18.5h"
+            value={stats.learningHoursLabel}
             icon="Clock"
-            mono="42h total"
           />
           <StatsCard
             title="Quiz Average"
-            value="87%"
+            value={quizDisplay}
             icon="Star"
-            miniChart={[40, 60, 80, 50, 90, 70, 95]}
           />
           <StatsCard
             title="Active Tickets"
-            value={5}
+            value={stats.activeTickets}
             icon="Ticket"
-            badge="3 upcoming"
+            badge={activeBadge}
           />
         </div>
 
@@ -134,43 +86,64 @@ export function OverviewContent({ userName }: OverviewContentProps): React.React
               </Button>
             </div>
             <div className="space-y-3">
-              {upcoming.map((w) => (
-                <UpcomingWebinarRow
-                  key={w.slug}
-                  title={w.title}
-                  expert={w.expert}
-                  date={w.date}
-                  status={w.type === 'live' ? 'live' : 'upcoming'}
-                  statusLabel={w.statusLabel}
-                  icon={
-                    w.type === 'live' ? (
-                      <Heart className="h-6 w-6 text-red-400" strokeWidth={1.5} />
-                    ) : (
-                      <Baby className="h-6 w-6 text-teal-500" strokeWidth={1.5} />
-                    )
-                  }
-                  href={`/dashboard/webinars/${w.slug}`}
-                />
-              ))}
+              {upcomingWebinars.length === 0 ? (
+                <p className="text-sm text-slate-500 py-2">No upcoming webinars.</p>
+              ) : (
+                upcomingWebinars.map((w) => (
+                  <UpcomingWebinarRow
+                    key={w.slug}
+                    title={w.title}
+                    expert={w.expert}
+                    date={w.dateLabel}
+                    status={w.status === 'live' ? 'live' : 'upcoming'}
+                    statusLabel={w.statusLabel}
+                    icon={
+                      w.status === 'live' ? (
+                        <Heart className="h-6 w-6 text-red-400" strokeWidth={1.5} />
+                      ) : (
+                        <Baby className="h-6 w-6 text-teal-500" strokeWidth={1.5} />
+                      )
+                    }
+                    href={`/dashboard/webinars/${w.slug}`}
+                  />
+                ))
+              )}
             </div>
           </div>
           <div className="lg:col-span-2 rounded-2xl border border-black/5 bg-white p-6">
             <h2 className="font-serif text-xl text-slate-900 mb-5">
               Learning Progress
             </h2>
-            <LearningProgressBlock
-              items={progressItems}
-              callout={{
-                title: '2 certificates earned!',
-                subtitle: 'Complete 1 more module to unlock your next.',
-              }}
-            />
+            {progressItems.length === 0 ? (
+              <p className="text-sm text-slate-500 py-2">No modules yet. Start learning from the Learning page.</p>
+            ) : (
+              <LearningProgressBlock
+                items={progressItems}
+                callout={
+                  certificateCount > 0
+                    ? {
+                        title: `${certificateCount} certificate${certificateCount === 1 ? '' : 's'} earned!`,
+                        subtitle: 'Complete more modules to unlock your next.',
+                      }
+                    : undefined
+                }
+              />
+            )}
           </div>
         </div>
 
         <div className="rounded-2xl border border-black/5 bg-white p-6">
-          <h2 className="font-serif text-xl text-slate-900 mb-5">Recent Activity</h2>
-          <RecentActivityList items={activities} className="space-y-4" />
+          <div className="flex items-center justify-between mb-5">
+            <h2 className="font-serif text-xl text-slate-900">Recent Activity</h2>
+            <Button variant="secondary" size="sm" className="text-xs" asChild>
+              <Link href="/dashboard/activity">View all</Link>
+            </Button>
+          </div>
+          {activities.length === 0 ? (
+            <p className="text-sm text-slate-500 py-2">No recent activity.</p>
+          ) : (
+            <ActivityFeed activities={activities} className="space-y-4" />
+          )}
         </div>
       </div>
     </>

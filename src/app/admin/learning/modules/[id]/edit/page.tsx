@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
-import { getModuleById } from '@/lib/mock/learning';
+import { getModuleById } from '@/lib/data/learning';
 import { ModuleForm } from '../../module-form';
 import { updateModule } from '../../../actions';
 
@@ -11,7 +11,7 @@ interface EditPageProps {
 
 export default async function AdminModuleEditPage({ params }: EditPageProps): Promise<React.ReactElement> {
   const { id } = await params;
-  const moduleData = getModuleById(id);
+  const moduleData = await getModuleById(id);
   if (!moduleData) notFound();
 
   return (
@@ -25,7 +25,7 @@ export default async function AdminModuleEditPage({ params }: EditPageProps): Pr
       </Link>
       <h1 className="font-serif text-3xl text-slate-900 mb-1">Edit Module</h1>
       <p className="text-slate-600 text-sm mb-8">Update module details.</p>
-      <ModuleForm action={updateModule} initialValues={moduleData} />
+      <ModuleForm action={updateModule} initialValues={{ id: moduleData.id, slug: moduleData.slug, title: moduleData.title, description: moduleData.description, lessons: [], progress: 0, progressLabel: '', passThresholdPercent: moduleData.passThresholdPercent }} />
     </div>
   );
 }

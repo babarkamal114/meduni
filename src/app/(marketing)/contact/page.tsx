@@ -5,7 +5,7 @@ import { ContactSection } from '@/components/marketing/contact-section';
 export const metadata: Metadata = genMetadata({
   title: 'Contact Us',
   description:
-    "Get in touch with MedUni. We're here to help with any questions about our medical education platform, webinars, or services.",
+    "Contact MedUni for registrations, technical support, group bookings, or teaching enquiries from faculty and consultants.",
   type: 'website',
   url: '/contact',
 });

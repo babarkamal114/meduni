@@ -1,8 +1,9 @@
 import Link from 'next/link';
-import { MODULES } from '@/lib/mock/learning';
+import { getModules } from '@/lib/data/learning';
 import { Button } from '@/components/ui/button';
 
-export default function AdminModulesPage(): React.ReactElement {
+export default async function AdminModulesPage(): Promise<React.ReactElement> {
+  const modules = await getModules();
   return (
     <div>
       <div className="flex items-center justify-between mb-8">
@@ -25,23 +26,31 @@ export default function AdminModulesPage(): React.ReactElement {
             </tr>
           </thead>
           <tbody>
-            {MODULES.map((mod) => (
-              <tr key={mod.id} className="border-b border-black/5 hover:bg-slate-50/50">
-                <td className="px-4 py-3 font-medium text-slate-800">{mod.title}</td>
-                <td className="px-4 py-3 text-slate-600">{mod.id}</td>
-                <td className="px-4 py-3 text-slate-600">{mod.lessons.length}</td>
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm" asChild>
-                      <Link href={`/admin/learning/modules/${mod.id}/edit`}>Edit</Link>
-                    </Button>
-                    <Button variant="outline" size="sm" asChild>
-                      <Link href={`/admin/learning/modules/${mod.id}/lessons`}>Manage lessons</Link>
-                    </Button>
-                  </div>
+            {modules.length === 0 ? (
+              <tr>
+                <td colSpan={4} className="px-4 py-8 text-center text-slate-500 text-sm">
+                  No modules yet. Add a module to get started.
                 </td>
               </tr>
-            ))}
+            ) : (
+              modules.map((mod) => (
+                <tr key={mod.id} className="border-b border-black/5 hover:bg-slate-50/50">
+                  <td className="px-4 py-3 font-medium text-slate-800">{mod.title}</td>
+                  <td className="px-4 py-3 text-slate-600">{mod.slug}</td>
+                  <td className="px-4 py-3 text-slate-600">{mod.lesson_count}</td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-2">
+                      <Button variant="outline" size="sm" asChild>
+                        <Link href={`/admin/learning/modules/${mod.id}/edit`}>Edit</Link>
+                      </Button>
+                      <Button variant="outline" size="sm" asChild>
+                        <Link href={`/admin/learning/modules/${mod.id}/lessons`}>Manage lessons</Link>
+                      </Button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>

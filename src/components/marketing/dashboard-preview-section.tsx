@@ -4,42 +4,42 @@ import { SectionHeading } from '@/components/marketing/section-heading';
 
 const CHECKLIST = [
   {
-    title: 'Multi-Auth Login',
-    description: 'Sign in with Email, Google, or Apple — seamless and secure.',
+    title: 'Live, interactive small-group sessions',
+    description: 'Join focused teaching sessions designed to make participation and discussion easy.',
   },
   {
-    title: 'Webinar Library',
-    description: 'All purchased sessions, replays, and live events in one hub.',
+    title: 'Expert-led webinars',
+    description: 'Learn with attending physicians, consultants, and clinicians who teach from practice.',
   },
   {
-    title: 'My Learning Hub',
-    description: 'Weekly materials, case studies, quizzes, and video tutorials.',
+    title: 'Recordings and notes for every session',
+    description: 'Review each webinar anytime with individual access to recordings and comprehensive notes.',
   },
   {
-    title: 'My Tickets',
-    description: 'View and manage webinar registrations and upcoming events in one place.',
+    title: 'Discounted group rates',
+    description: 'Flexible pricing for teams, university groups, and organised student cohorts.',
   },
   {
-    title: 'Certificates & Progress',
-    description: 'Track module completion and earn CPD certificates from your dashboard.',
+    title: 'Attendance certificate',
+    description: 'Receive a certificate for every session to support your academic and professional journey.',
   },
 ];
 
 export function DashboardPreviewSection(): React.ReactElement {
   return (
-    <section id="webinars" className="py-32 sec-tint">
+    <section id="mission" className="py-32 sec-tint">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           <Reveal variant="left">
             <SectionHeading
-              eyebrow="Student Dashboard"
+              eyebrow="Our mission"
               title={
                 <>
-                  Your learning, <br />
-                  <span className="italic grad-text">beautifully organised</span>
+                  Flexible, theme-based learning <br />
+                  <span className="italic grad-text">that fits your schedule</span>
                 </>
               }
-              description="A personalised dashboard where students manage subscriptions, access live events, stream replays, and track their learning journey."
+              description="MedUni exists to help medical students learn in a way that is practical, affordable, and aligned with clinical excellence. Every webinar is designed to advance your medical career without forcing your learning around a rigid schedule."
             />
             <div className="space-y-5 mt-10">
               {CHECKLIST.map((item) => (
@@ -65,7 +65,7 @@ export function DashboardPreviewSection(): React.ReactElement {
                 <div className="w-3 h-3 rounded-full bg-green-300" />
                 <div className="flex-1 h-7 rounded-lg bg-slate-50 ml-4 flex items-center px-3">
                   <span className="text-xs text-slate-600 font-mono">
-                    meduni.co.uk/dashboard
+                    meduni.co.uk/learning
                   </span>
                 </div>
               </div>
@@ -73,10 +73,10 @@ export function DashboardPreviewSection(): React.ReactElement {
                 <div className="flex items-center justify-between p-4 rounded-xl bg-slate-50">
                   <div>
                     <div className="text-xs text-slate-600 mb-1">
-                      Welcome back
+                      Student profile
                     </div>
                     <div className="font-serif text-lg text-slate-800">
-                      Dr. Sarah Mitchell
+                      Sara Malik
                     </div>
                   </div>
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-500 to-teal-700 flex items-center justify-center text-sm font-bold text-white">
@@ -85,27 +85,27 @@ export function DashboardPreviewSection(): React.ReactElement {
                 </div>
                 <div className="grid grid-cols-3 gap-3">
                   <div className="p-3 rounded-xl bg-slate-50 text-center">
-                    <div className="font-serif text-2xl text-teal-600">12</div>
+                    <div className="font-serif text-2xl text-teal-600">08</div>
                     <div className="text-xs text-slate-600 uppercase tracking-wider">
-                      Webinars
+                      Sessions
                     </div>
                   </div>
                   <div className="p-3 rounded-xl bg-slate-50 text-center">
-                    <div className="font-serif text-2xl text-teal-600">8</div>
+                    <div className="font-serif text-2xl text-teal-600">08</div>
                     <div className="text-xs text-slate-600 uppercase tracking-wider">
-                      Completed
+                      Notes
                     </div>
                   </div>
                   <div className="p-3 rounded-xl bg-slate-50 text-center">
-                    <div className="font-serif text-2xl text-teal-600">3</div>
+                    <div className="font-serif text-2xl text-teal-600">04</div>
                     <div className="text-xs text-slate-600 uppercase tracking-wider">
-                      Upcoming
+                      Certificates
                     </div>
                   </div>
                 </div>
                 <div className="p-4 rounded-xl bg-slate-50">
                   <div className="text-xs text-slate-600 mb-3 uppercase tracking-wider">
-                    Next Webinar
+                    Upcoming webinar
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded-xl bg-teal-500/10 flex items-center justify-center">
@@ -113,14 +113,14 @@ export function DashboardPreviewSection(): React.ReactElement {
                     </div>
                     <div className="flex-1">
                       <div className="text-sm font-medium text-slate-700">
-                        Cardiology Update 2025
+                        Sudden Death Due to Cardiac Causes
                       </div>
                       <div className="text-xs text-slate-600">
-                        Tomorrow, 7:00 PM GMT
+                        Sat, 2nd May 2026 - 18:00 GMT
                       </div>
                     </div>
                     <div className="px-3 py-1 rounded-full bg-teal-500/10 text-teal-600 text-xs font-medium">
-                      Live
+                      Zoom
                     </div>
                   </div>
                 </div>

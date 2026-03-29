@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { CONTENT_ITEMS } from '@/lib/mock/learning';
+import { getContentItems } from '@/lib/data/learning';
 import { Button } from '@/components/ui/button';
 import { deleteContentItem } from './actions';
 import { FileText, HelpCircle, Video } from 'lucide-react';
@@ -16,9 +16,36 @@ const typeIcons = {
   video: Video,
 };
 
-export default function AdminContentPage(): React.ReactElement {
+interface AdminContentPageProps {
+  searchParams: Promise<{ created?: string; updated?: string; deleted?: string; delete_error?: string }>;
+}
+
+export default async function AdminContentPage({ searchParams }: AdminContentPageProps): Promise<React.ReactElement> {
+  const params = await searchParams;
+  const items = await getContentItems();
+
+  const successMessage =
+    params.created === '1'
+      ? 'Content created.'
+      : params.updated === '1'
+        ? 'Content updated.'
+        : params.deleted === '1'
+          ? 'Content deleted.'
+          : null;
+  const errorMessage = params.delete_error === '1' ? 'Failed to delete content.' : null;
+
   return (
     <div>
+      {successMessage && (
+        <p className="mb-6 rounded-lg bg-teal-50 px-4 py-3 text-sm font-medium text-teal-800" role="status">
+          {successMessage}
+        </p>
+      )}
+      {errorMessage && (
+        <p className="mb-6 rounded-lg bg-red-50 px-4 py-3 text-sm font-medium text-red-800" role="alert">
+          {errorMessage}
+        </p>
+      )}
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="font-serif text-3xl text-slate-900 mb-1">Content</h1>
@@ -47,7 +74,14 @@ export default function AdminContentPage(): React.ReactElement {
             </tr>
           </thead>
           <tbody>
-            {CONTENT_ITEMS.map((item) => {
+            {items.length === 0 ? (
+              <tr>
+                <td colSpan={4} className="px-4 py-8 text-center text-slate-500 text-sm">
+                  No content yet. Add PDF, video, or quiz to get started.
+                </td>
+              </tr>
+            ) : (
+            items.map((item) => {
               const Icon = typeIcons[item.type];
               return (
                 <tr key={item.id} className="border-b border-black/5 hover:bg-slate-50/50">
@@ -73,7 +107,8 @@ export default function AdminContentPage(): React.ReactElement {
                   </td>
                 </tr>
               );
-            })}
+            })
+            )}
           </tbody>
         </table>
       </div>

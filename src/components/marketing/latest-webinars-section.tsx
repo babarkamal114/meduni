@@ -3,13 +3,14 @@ import { Reveal } from '@/components/marketing/reveal';
 import { SectionHeading } from '@/components/marketing/section-heading';
 import { GlowButton } from '@/components/marketing/glow-button';
 import { MarketingWebinarCard } from '@/components/marketing/webinar-card';
-import { MOCK_WEBINARS } from '@/lib/data/mock-webinars';
+import type { Webinar } from '@/lib/data/webinars';
 
-const UPCOMING = MOCK_WEBINARS.filter(
-  (w) => w.status === 'live' || w.status === 'upcoming'
-).slice(0, 3);
+interface LatestWebinarsSectionProps {
+  webinars?: Webinar[];
+}
 
-export function LatestWebinarsSection(): React.ReactElement {
+export function LatestWebinarsSection({ webinars = [] }: LatestWebinarsSectionProps): React.ReactElement {
+  const upcoming = webinars.filter((w) => w.status === 'live' || w.status === 'upcoming').slice(0, 3);
   return (
     <section id="webinars" className="py-32 sec-tint">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
@@ -19,15 +20,15 @@ export function LatestWebinarsSection(): React.ReactElement {
               eyebrow="Upcoming webinars"
               title={
                 <>
-                  Latest <span className="italic grad-text">sessions</span>
+                  Upcoming <span className="italic grad-text">sessions</span>
                 </>
               }
-              description="Expert-led medical education webinars. Join live or watch the replay at your convenience."
+              description="Join focused clinical webinars led by expert clinicians and explore the sessions currently open for registration."
             />
           </div>
         </Reveal>
         <div className="grid md:grid-cols-3 gap-6 mb-12">
-          {UPCOMING.map((webinar, i) => (
+          {upcoming.map((webinar, i) => (
             <Reveal key={webinar.id} style={{ transitionDelay: `${i * 0.1}s` }}>
               <MarketingWebinarCard webinar={webinar} />
             </Reveal>

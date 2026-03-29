@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
-import { getContentById } from '@/lib/mock/learning';
+import { getContentById } from '@/lib/data/learning';
 import { ContentItemForm } from '../../content-item-form';
 import { updateContentItem } from '../../actions';
 
@@ -11,7 +11,7 @@ interface EditContentPageProps {
 
 export default async function AdminContentEditPage({ params }: EditContentPageProps): Promise<React.ReactElement> {
   const { id } = await params;
-  const content = getContentById(id);
+  const content = await getContentById(id);
   if (!content) notFound();
 
   return (

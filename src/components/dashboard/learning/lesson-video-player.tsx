@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useRef, useState, type ElementRef } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import ReactPlayer from 'react-player';
 import { Maximize, Pause, Play, Volume2, VolumeX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -27,7 +27,7 @@ function formatTime(totalSeconds: number): string {
 }
 
 export function LessonVideoPlayer({ url }: LessonVideoPlayerProps): React.ReactElement {
-  const playerRef = useRef<ElementRef<typeof ReactPlayer> | null>(null);
+  const playerRef = useRef<HTMLVideoElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
@@ -52,7 +52,7 @@ export function LessonVideoPlayer({ url }: LessonVideoPlayerProps): React.ReactE
 
   const handleSeek = useCallback((nextSeconds: number) => {
     if (!playerRef.current) return;
-    playerRef.current.seekTo(nextSeconds, 'seconds');
+    playerRef.current.currentTime = nextSeconds;
     setProgress((prev) => ({ ...prev, playedSeconds: nextSeconds }));
   }, []);
 

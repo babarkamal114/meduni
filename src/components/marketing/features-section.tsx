@@ -52,13 +52,14 @@ export function FeaturesSection(): React.ReactElement {
             description="Practical, focused sessions designed to bridge classroom theory with real-world clinical performance."
           />
         </Reveal>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           {FEATURES.map((feature, i) => (
             <Reveal key={feature.title} style={{ transitionDelay: DELAYS[i] }}>
               <FeatureCard
                 icon={feature.icon}
                 title={feature.title}
                 description={feature.description}
+                className="h-full"
               />
             </Reveal>
           ))}

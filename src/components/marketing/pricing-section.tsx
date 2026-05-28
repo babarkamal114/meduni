@@ -12,7 +12,7 @@ const INCLUSIONS = [
 
 export function PricingSection(): React.ReactElement {
   return (
-    <section id="pricing" className="py-32 sec-tint">
+    <section id="pricing" className="py-32">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <Reveal className="text-center mb-20">
           <div className="max-w-2xl mx-auto">
@@ -29,13 +29,13 @@ export function PricingSection(): React.ReactElement {
         </Reveal>
         <Reveal>
           <div className="max-w-2xl mx-auto">
-            <div className="pf rounded-3xl p-10 relative overflow-hidden">
+            <div className="pf rounded-3xl p-8 sm:p-10 relative overflow-hidden">
               <div className="absolute top-6 right-6">
                 <span className="px-3 py-1 rounded-full bg-teal-500/10 text-teal-600 text-xs font-mono uppercase tracking-wider">
                   Per webinar
                 </span>
               </div>
-              <div className="mb-8">
+              <div className="mb-8 pr-20">
                 <div className="font-serif text-6xl sm:text-7xl grad-text mb-2">
                   From £29
                 </div>

@@ -4,7 +4,7 @@ import { ArrowUpRight } from 'lucide-react';
 
 export function HeroSection(): React.ReactElement {
   return (
-    <section className="relative min-h-screen flex items-center pt-20 overflow-hidden hero-bg">
+    <section className="relative min-h-screen flex items-center pt-24 pb-14 overflow-hidden hero-bg">
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-32 left-10 w-72 h-72 bg-teal-500/5 rounded-full blur-[120px] fl-s" />
         <div className="absolute bottom-20 right-20 w-96 h-96 bg-teal-500/[.03] rounded-full blur-[150px] fl-m" />
@@ -18,28 +18,42 @@ export function HeroSection(): React.ReactElement {
             <span className="w-2 h-2 rounded-full bg-teal-500 animate-pulse" />
             Clinical webinars for exam-ready learning
           </div>
-          <h1 className="fade-up d1 font-serif text-5xl sm:text-6xl lg:text-8xl leading-[1.05]  text-slate-900 mb-8">
+          <h1 className="fade-up d1 font-serif text-5xl sm:text-6xl lg:text-7xl leading-[1.06] text-slate-900 mb-8">
             Master Clinical Medicine
             <br />
             <span className="grad-text italic [font-family:var(--font-instrument-serif),Georgia,serif]">with Expert-Led Webinars</span>
           </h1>
-          <p className="fade-up d2 text-lg sm:text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed mb-12">
+          <p className="fade-up d2 text-lg sm:text-xl text-slate-600 max-w-3xl mx-auto leading-relaxed mb-8">
             High-yield, affordable online sessions that bridge textbook
             knowledge and real-world clinical excellence. MedUni connects
             medical students with expert clinicians across core disciplines to
             deepen understanding and support exam readiness.
           </p>
+          <ul className="fade-up d25 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 mb-12 text-sm text-slate-600">
+            <li className="inline-flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-teal-500" />
+              Small-group interactive sessions
+            </li>
+            <li className="inline-flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-teal-500" />
+              Live and replay access
+            </li>
+            <li className="inline-flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-teal-500" />
+              Certificate-ready learning pathway
+            </li>
+          </ul>
           <div className="fade-up d3 flex flex-col sm:flex-row items-center justify-center gap-4">
             <GlowButton
               href="/webinars"
-              className="group px-8 py-4 flex items-center gap-2 text-lg"
+              className="group px-8 py-4 flex items-center gap-2 text-lg w-full sm:w-auto justify-center"
             >
               Explore Webinars
               <ArrowUpRight className="w-5 h-5 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
             </GlowButton>
             <Link
               href="/sign-up"
-              className="px-8 py-4 rounded-full border border-slate-200 text-slate-500 hover:text-teal-600 hover:border-teal-500/30 transition-all font-medium text-lg"
+              className="px-8 py-4 rounded-full border border-slate-200 text-slate-500 hover:text-teal-600 hover:border-teal-500/30 transition-all font-medium text-lg w-full sm:w-auto"
             >
               Join Now - Free Registration &amp; Weekly Quiz
             </Link>
@@ -72,7 +86,7 @@ export function HeroSection(): React.ReactElement {
           </div>
         </div>
       </div>
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 fade-in d5">
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 fade-in d5 hidden lg:block">
         <div className="w-6 h-10 rounded-full border-2 border-slate-200 flex items-start justify-center p-1.5">
           <div className="w-1.5 h-3 rounded-full bg-teal-500 animate-bounce" />
         </div>

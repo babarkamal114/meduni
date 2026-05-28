@@ -80,13 +80,10 @@ export function ContactSection(): React.ReactElement {
                     <Mail className="w-4 h-4 text-teal-600" />
                     info@meduni.co.uk
                   </Link>
-                  <Link
-                    href="https://wa.me/440000000000"
-                    className="flex items-center gap-3 hover:text-teal-600 transition-colors"
-                  >
+                  <div className="flex items-center gap-3 text-slate-500">
                     <MessageCircle className="w-4 h-4 text-teal-600" />
-                    +44 XXXX XXX XXX
-                  </Link>
+                    WhatsApp support available on request via email
+                  </div>
                 </div>
               </div>
             </Reveal>

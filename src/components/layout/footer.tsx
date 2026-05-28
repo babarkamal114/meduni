@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { GraduationCap } from 'lucide-react';
+import Image from 'next/image';
 import { siteConfig } from '@/config/site';
 
 export function Footer(): React.ReactElement {
@@ -10,13 +10,14 @@ export function Footer(): React.ReactElement {
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
           <div className="lg:col-span-2">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-500 to-teal-700 flex items-center justify-center">
-                <GraduationCap className="w-6 h-6 text-white" />
-              </div>
-              <span className="font-serif text-2xl text-slate-900">
-                {siteConfig.name}
-              </span>
+            <div className="mb-4">
+              <Image
+                src="/images/med-uni-logo.png"
+                alt={`${siteConfig.name} logo`}
+                width={184}
+                height={56}
+                className="h-12 w-auto"
+              />
             </div>
             <p className="text-slate-600 text-sm leading-relaxed max-w-sm">
               Expert-led clinical medicine webinars for medical students,
@@ -60,15 +61,7 @@ export function Footer(): React.ReactElement {
           <p className="text-xs text-slate-500">
             © {currentYear} {siteConfig.name}. All rights reserved.
           </p>
-          <p className="text-xs text-slate-500">
-            Built by{' '}
-            <Link
-              href="#"
-              className="text-teal-600 hover:text-teal-700 transition-colors"
-            >
-              DevBeam
-            </Link>
-          </p>
+          <p className="text-xs text-slate-500">Built by DevBeam</p>
         </div>
       </div>
     </footer>

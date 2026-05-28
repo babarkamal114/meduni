@@ -28,7 +28,7 @@ export default async function AdminWebinarsPage({ searchParams }: AdminWebinarsP
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="font-serif text-3xl text-slate-900 mb-1">Webinars</h1>
-          <p className="text-slate-600 text-sm">Manage live, upcoming, and recorded webinars.</p>
+          <p className="text-slate-600 text-sm">Manage webinars with simple edit/delete controls.</p>
         </div>
         <Link
           href="/admin/webinars/new"

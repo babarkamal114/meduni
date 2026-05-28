@@ -18,7 +18,7 @@ export default async function AdminWebinarEditPage({ params }: EditPageProps): P
     <div>
       <Link
         href="/admin/webinars"
-        className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-teal-600 mb-6 bg-green-500"
+        className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-teal-600 mb-6"
       >
         <ArrowLeft className="h-4 w-4" strokeWidth={1.5} />
         Back to Webinars

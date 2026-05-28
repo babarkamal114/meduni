@@ -49,18 +49,17 @@ export default async function AdminContentPage({ searchParams }: AdminContentPag
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="font-serif text-3xl text-slate-900 mb-1">Content</h1>
-          <p className="text-slate-600 text-sm">Manage weekly materials (PDF, quiz, video).</p>
+          <p className="text-slate-600 text-sm">Manage weekly materials with quick edit/delete actions.</p>
         </div>
-        <div className="flex gap-2">
-          <Link href="/admin/content/new?type=pdf">
-            <Button variant="outline" size="sm">Add PDF</Button>
+        <div className="flex items-center gap-3">
+          <Link href="/admin/content/new">
+            <Button>Add Content</Button>
           </Link>
-          <Link href="/admin/content/new?type=video">
-            <Button variant="outline" size="sm">Add Video</Button>
-          </Link>
-          <Link href="/admin/content/new?type=quiz">
-            <Button variant="outline" size="sm">Add Quiz</Button>
-          </Link>
+          <div className="text-xs text-slate-500">
+            Quick: <Link href="/admin/content/new?type=pdf" className="underline">PDF</Link> ·{' '}
+            <Link href="/admin/content/new?type=video" className="underline">Video</Link> ·{' '}
+            <Link href="/admin/content/new?type=quiz" className="underline">Quiz</Link>
+          </div>
         </div>
       </div>
       <div className="rounded-xl border border-black/[0.06] bg-white overflow-hidden">

@@ -2,17 +2,22 @@
 
 import type { Json } from '@/types/database';
 import { redirect } from 'next/navigation';
+import { revalidatePath } from 'next/cache';
 import { requireAdmin } from '@/lib/auth/requireAdmin';
 import {
   createModule as createModuleDb,
   updateModule as updateModuleDb,
+  deleteModule as deleteModuleDb,
   createLesson as createLessonDb,
   updateLesson as updateLessonDb,
+  deleteLesson as deleteLessonDb,
   createCaseStudy as createCaseStudyDb,
   updateCaseStudy as updateCaseStudyDb,
+  deleteCaseStudy as deleteCaseStudyDb,
   getModuleById,
 } from '@/lib/data/learning';
 import { createNotification } from '@/lib/data/notifications';
+import { titleToSlug } from '@/lib/utils/slug';
 
 function parseLessonQuizFormData(formData: FormData): Json | null {
   const countRaw = formData.get('quiz_question_count');
@@ -21,17 +26,23 @@ function parseLessonQuizFormData(formData: FormData): Json | null {
   for (let n = 1; n <= count; n++) {
     const questionText = (formData.get(`question_${n}`) as string)?.trim();
     if (!questionText) continue;
-    const o1Label = (formData.get(`q${n}_option_1_label`) as string)?.trim();
-    const o2Label = (formData.get(`q${n}_option_2_label`) as string)?.trim();
-    const o1Correct = formData.get(`q${n}_option_1_correct`) === 'on';
-    const o2Correct = formData.get(`q${n}_option_2_correct`) === 'on';
+    const optionCountRaw = formData.get(`q${n}_option_count`);
+    const optionCount = Math.min(6, Math.max(2, parseInt(String(optionCountRaw ?? 2), 10) || 2));
+    const options: { id: string; label: string; correct: boolean }[] = [];
+    for (let optionIndex = 1; optionIndex <= optionCount; optionIndex++) {
+      const label = (formData.get(`q${n}_option_${optionIndex}_label`) as string)?.trim();
+      if (!label) continue;
+      options.push({
+        id: String.fromCharCode(96 + optionIndex),
+        label,
+        correct: formData.get(`q${n}_option_${optionIndex}_correct`) === 'on',
+      });
+    }
+    if (options.length < 2) continue;
     questions.push({
       id: `q${n}`,
       question: questionText,
-      options: [
-        { id: 'a', label: o1Label || 'Option A', correct: o1Correct },
-        { id: 'b', label: o2Label || 'Option B', correct: o2Correct },
-      ],
+      options,
     });
   }
   if (questions.length === 0) return null;
@@ -41,7 +52,7 @@ function parseLessonQuizFormData(formData: FormData): Json | null {
 export async function createModule(_prev: unknown, formData: FormData): Promise<{ success: boolean; error?: string }> {
   await requireAdmin();
   const title = (formData.get('title') as string)?.trim() ?? '';
-  const slug = (formData.get('slug') as string)?.trim()?.toLowerCase().replace(/\s+/g, '-') ?? '';
+  const slug = titleToSlug(title);
   const description = (formData.get('description') as string)?.trim() ?? '';
   const passThresholdRaw = formData.get('pass_threshold_percent');
   const pass_threshold_percent = passThresholdRaw ? Math.min(100, Math.max(1, parseInt(String(passThresholdRaw), 10) || 80)) : 80;
@@ -54,7 +65,7 @@ export async function createModule(_prev: unknown, formData: FormData): Promise<
     link: `/dashboard/learning/module/${slug}`,
     reference_id: id,
   });
-  redirect('/admin/learning/modules?created=1');
+  redirect(`/admin/learning/modules/${id}/lessons?module_created=1`);
 }
 
 export async function updateModule(_prev: unknown, formData: FormData): Promise<{ success: boolean; error?: string }> {
@@ -228,4 +239,40 @@ export async function updateCaseStudy(
   });
   if (error) return { success: false, error };
   redirect('/admin/learning/case-studies?updated=1');
+}
+
+export async function deleteModule(id: string): Promise<void> {
+  await requireAdmin();
+  if (!id) return;
+  const { error } = await deleteModuleDb(id);
+  if (error) {
+    redirect('/admin/learning/modules?delete_error=1');
+  }
+  revalidatePath('/admin/learning/modules');
+  revalidatePath('/dashboard/learning');
+  redirect('/admin/learning/modules?deleted=1');
+}
+
+export async function deleteLesson(moduleId: string, lessonId: string): Promise<void> {
+  await requireAdmin();
+  if (!moduleId || !lessonId) return;
+  const { error } = await deleteLessonDb(lessonId);
+  if (error) {
+    redirect(`/admin/learning/modules/${moduleId}/lessons?delete_error=1`);
+  }
+  revalidatePath(`/admin/learning/modules/${moduleId}/lessons`);
+  revalidatePath('/dashboard/learning');
+  redirect(`/admin/learning/modules/${moduleId}/lessons?deleted=1`);
+}
+
+export async function deleteCaseStudy(id: string): Promise<void> {
+  await requireAdmin();
+  if (!id) return;
+  const { error } = await deleteCaseStudyDb(id);
+  if (error) {
+    redirect('/admin/learning/case-studies?delete_error=1');
+  }
+  revalidatePath('/admin/learning/case-studies');
+  revalidatePath('/dashboard/learning');
+  redirect('/admin/learning/case-studies?deleted=1');
 }

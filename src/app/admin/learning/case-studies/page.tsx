@@ -1,15 +1,37 @@
 import Link from 'next/link';
 import { getCaseStudies } from '@/lib/data/learning';
 import { Button } from '@/components/ui/button';
+import { AdminCaseStudyRow } from './admin-case-study-row';
 
-export default async function AdminCaseStudiesPage(): Promise<React.ReactElement> {
+interface AdminCaseStudiesPageProps {
+  searchParams: Promise<{ created?: string; updated?: string; deleted?: string; delete_error?: string }>;
+}
+
+export default async function AdminCaseStudiesPage({ searchParams }: AdminCaseStudiesPageProps): Promise<React.ReactElement> {
+  const params = await searchParams;
   const caseStudies = await getCaseStudies();
+  const successMessage =
+    params.created === '1'
+      ? 'Case study created.'
+      : params.updated === '1'
+        ? 'Case study updated.'
+        : params.deleted === '1'
+          ? 'Case study deleted.'
+          : null;
+  const errorMessage = params.delete_error === '1' ? 'Failed to delete case study.' : null;
+
   return (
     <div>
+      {successMessage ? (
+        <p className="mb-6 rounded-lg bg-teal-50 px-4 py-3 text-sm font-medium text-teal-800">{successMessage}</p>
+      ) : null}
+      {errorMessage ? (
+        <p className="mb-6 rounded-lg bg-red-50 px-4 py-3 text-sm font-medium text-red-800">{errorMessage}</p>
+      ) : null}
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="font-serif text-3xl text-slate-900 mb-1">Case Studies</h1>
-          <p className="text-slate-600 text-sm">Manage interactive case studies.</p>
+          <p className="text-slate-600 text-sm">Create, edit, and remove case studies.</p>
         </div>
         <Link href="/admin/learning/case-studies/new">
           <Button>Add Case Study</Button>
@@ -32,17 +54,7 @@ export default async function AdminCaseStudiesPage(): Promise<React.ReactElement
                 </td>
               </tr>
             ) : (
-              caseStudies.map((cs) => (
-                <tr key={cs.id} className="border-b border-black/5 hover:bg-slate-50/50">
-                  <td className="px-4 py-3 font-medium text-slate-800">{cs.title}</td>
-                  <td className="px-4 py-3 text-slate-600">{cs.slug}</td>
-                  <td className="px-4 py-3">
-                    <Button variant="outline" size="sm" asChild>
-                      <Link href={`/admin/learning/case-studies/${cs.id}/edit`}>Edit</Link>
-                    </Button>
-                  </td>
-                </tr>
-              ))
+              caseStudies.map((cs) => <AdminCaseStudyRow key={cs.id} caseStudy={cs} />)
             )}
           </tbody>
         </table>

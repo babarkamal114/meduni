@@ -1,15 +1,37 @@
 import Link from 'next/link';
 import { getModules } from '@/lib/data/learning';
 import { Button } from '@/components/ui/button';
+import { AdminModuleRow } from './admin-module-row';
 
-export default async function AdminModulesPage(): Promise<React.ReactElement> {
+interface AdminModulesPageProps {
+  searchParams: Promise<{ created?: string; updated?: string; deleted?: string; delete_error?: string }>;
+}
+
+export default async function AdminModulesPage({ searchParams }: AdminModulesPageProps): Promise<React.ReactElement> {
+  const params = await searchParams;
   const modules = await getModules();
+  const successMessage =
+    params.created === '1'
+      ? 'Module created.'
+      : params.updated === '1'
+        ? 'Module updated.'
+        : params.deleted === '1'
+          ? 'Module deleted.'
+          : null;
+  const errorMessage = params.delete_error === '1' ? 'Failed to delete module.' : null;
+
   return (
     <div>
+      {successMessage ? (
+        <p className="mb-6 rounded-lg bg-teal-50 px-4 py-3 text-sm font-medium text-teal-800">{successMessage}</p>
+      ) : null}
+      {errorMessage ? (
+        <p className="mb-6 rounded-lg bg-red-50 px-4 py-3 text-sm font-medium text-red-800">{errorMessage}</p>
+      ) : null}
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="font-serif text-3xl text-slate-900 mb-1">Modules</h1>
-          <p className="text-slate-600 text-sm">Manage learning modules and their lessons.</p>
+          <p className="text-slate-600 text-sm">Create, edit, and remove learning modules.</p>
         </div>
         <Link href="/admin/learning/modules/new">
           <Button>Add Module</Button>
@@ -33,23 +55,7 @@ export default async function AdminModulesPage(): Promise<React.ReactElement> {
                 </td>
               </tr>
             ) : (
-              modules.map((mod) => (
-                <tr key={mod.id} className="border-b border-black/5 hover:bg-slate-50/50">
-                  <td className="px-4 py-3 font-medium text-slate-800">{mod.title}</td>
-                  <td className="px-4 py-3 text-slate-600">{mod.slug}</td>
-                  <td className="px-4 py-3 text-slate-600">{mod.lesson_count}</td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2">
-                      <Button variant="outline" size="sm" asChild>
-                        <Link href={`/admin/learning/modules/${mod.id}/edit`}>Edit</Link>
-                      </Button>
-                      <Button variant="outline" size="sm" asChild>
-                        <Link href={`/admin/learning/modules/${mod.id}/lessons`}>Manage lessons</Link>
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              ))
+              modules.map((mod) => <AdminModuleRow key={mod.id} module={mod} />)
             )}
           </tbody>
         </table>

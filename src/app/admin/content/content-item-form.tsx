@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Plus, Trash2 } from 'lucide-react';
+import { AdminWizardActions, AdminWizardShell, type AdminWizardStep } from '@/components/admin/admin-wizard';
 
 type ContentType = 'pdf' | 'quiz' | 'video';
 
@@ -75,7 +76,14 @@ export function ContentItemForm({
       ? initialValues.questions.map(toState)
       : [defaultQuestion()];
   const [questions, setQuestions] = useState<QuizQuestionState[]>(initialQuestions);
+  const [step, setStep] = useState(0);
   const formId = useId();
+  const steps: AdminWizardStep[] = [
+    { id: 'details', title: 'Details' },
+    { id: 'meta', title: 'Meta' },
+    { id: 'quiz', title: isQuiz ? 'Quiz Builder' : 'Review' },
+    { id: 'review', title: 'Review' },
+  ];
 
   const addQuestion = () => setQuestions((prev) => [...prev, defaultQuestion()]);
   const removeQuestion = (index: number) => {
@@ -122,14 +130,15 @@ export function ContentItemForm({
   const quizJson = isQuiz ? JSON.stringify(quizPayload) : '';
 
   return (
-    <form action={formAction} className="max-w-xl space-y-6 rounded-xl border border-black/[0.06] bg-white p-6">
+    <form action={formAction}>
+      <AdminWizardShell steps={steps} currentStep={step}>
       <input type="hidden" name="type" value={type} />
       {initialValues && <input type="hidden" name="id" value={initialValues.id} />}
       {isQuiz && <input type="hidden" name="quiz_questions_json" value={quizJson} />}
       {state?.error && (
         <p className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">{state.error}</p>
       )}
-      <div className="space-y-2">
+      {(step === 0 || step === 3) && <div className="space-y-2">
         <Label htmlFor="title">Title</Label>
         <Input
           id="title"
@@ -139,8 +148,8 @@ export function ContentItemForm({
           placeholder="Week 12: Acute Coronary Syndromes"
           className="w-full"
         />
-      </div>
-      <div className="space-y-2">
+      </div>}
+      {(step === 0 || step === 3) && <div className="space-y-2">
         <Label htmlFor="description">Description</Label>
         <textarea
           id="description"
@@ -150,8 +159,8 @@ export function ContentItemForm({
           placeholder="PDF · 24 pages · Published 2 days ago"
           className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm min-h-[60px]"
         />
-      </div>
-      <div className="space-y-2">
+      </div>}
+      {(step === 1 || step === 3) && <div className="space-y-2">
         <Label htmlFor="meta">Meta</Label>
         <Input
           id="meta"
@@ -160,8 +169,8 @@ export function ContentItemForm({
           placeholder="PDF · 24 pages · Published 2 days ago"
           className="w-full"
         />
-      </div>
-      <div className="space-y-2">
+      </div>}
+      {(step === 1 || step === 3) && <div className="space-y-2">
         <Label htmlFor="estimatedTime">Estimated time</Label>
         <Input
           id="estimatedTime"
@@ -170,8 +179,8 @@ export function ContentItemForm({
           placeholder="24 pages or 15 min"
           className="w-full"
         />
-      </div>
-      {isPdf && (
+      </div>}
+      {isPdf && (step === 1 || step === 3) && (
         <div className="space-y-2">
           <Label htmlFor="downloadUrl">Download URL</Label>
           <Input
@@ -184,7 +193,7 @@ export function ContentItemForm({
           />
         </div>
       )}
-      {isVideo && (
+      {isVideo && (step === 1 || step === 3) && (
         <div className="space-y-2">
           <Label htmlFor="videoUrl">Video URL</Label>
           <Input
@@ -197,7 +206,7 @@ export function ContentItemForm({
           />
         </div>
       )}
-      {isQuiz && (
+      {isQuiz && (step === 2 || step === 3) && (
         <div className="border-t border-black/5 pt-4 mt-4">
           <div className="flex items-center justify-between mb-3">
             <Label className="block">Questions</Label>
@@ -281,9 +290,20 @@ export function ContentItemForm({
           )}
         </div>
       )}
-      <Button type="submit" disabled={isQuiz && quizPayload.length === 0}>
-        Save
-      </Button>
+      {step === 3 ? (
+        <p className="rounded-lg bg-slate-50 p-4 text-sm text-slate-700">
+          Review this content item and save when ready.
+        </p>
+      ) : null}
+      <AdminWizardActions
+        currentStep={step}
+        totalSteps={steps.length}
+        onBack={() => setStep((prev) => Math.max(0, prev - 1))}
+        onNext={() => setStep((prev) => Math.min(steps.length - 1, prev + 1))}
+        disableSubmit={isQuiz && quizPayload.length === 0}
+        submitLabel="Save"
+      />
+    </AdminWizardShell>
     </form>
   );
 }

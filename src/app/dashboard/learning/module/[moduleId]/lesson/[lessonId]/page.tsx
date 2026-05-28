@@ -4,6 +4,7 @@ import { ArrowLeft, ArrowRight, Video } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { LessonCompleteButton } from '@/components/dashboard/lesson-complete-button';
 import { ModuleLessonQuiz } from '@/components/dashboard/module-lesson-quiz';
+import { LessonVideoPlayer } from '@/components/dashboard/learning/lesson-video-player';
 import { getLesson } from '@/lib/data/learning';
 import { getUser } from '@/lib/auth/getUser';
 
@@ -70,13 +71,16 @@ export default async function LessonPage({
           <h1 className="font-serif text-2xl text-slate-900 mb-6">
             {lesson.title}
           </h1>
-          {lesson.hasVideo && (
+          {lesson.hasVideo && lesson.videoUrl ? (
+            <LessonVideoPlayer url={lesson.videoUrl} />
+          ) : null}
+          {lesson.hasVideo && !lesson.videoUrl ? (
             <div className="rounded-xl bg-slate-100 aspect-video flex items-center justify-center mb-6 border border-black/5">
               <div className="text-center text-slate-500 text-sm">
-                Video placeholder · {lesson.videoDuration}
+                Video link is missing for this lesson.
               </div>
             </div>
-          )}
+          ) : null}
           <div className="prose prose-slate prose-sm max-w-none text-slate-700">
             <p className="whitespace-pre-line">{lesson.body}</p>
           </div>

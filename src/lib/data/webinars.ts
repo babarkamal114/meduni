@@ -37,6 +37,19 @@ export interface Webinar {
   scheduledAt: string | null;
   joinUrl?: string | null;
   replayUrl?: string | null;
+  zoomWebinarId?: string | null;
+  zoomHostId?: string | null;
+  zoomStartUrl?: string | null;
+}
+
+export interface WebinarRegistration {
+  id: string;
+  userId: string;
+  webinarId: string;
+  zoomRegistrantId?: string | null;
+  zoomJoinUrl?: string | null;
+  zoomRegisteredAt?: string | null;
+  createdAt: string;
 }
 
 type WebinarsRow = Database['public']['Tables']['webinars']['Row'];
@@ -109,6 +122,23 @@ function rowToWebinar(row: WebinarsRow, purchased: boolean): Webinar {
     scheduledAt: row.scheduled_at,
     joinUrl: row.join_url ?? undefined,
     replayUrl: row.replay_url ?? undefined,
+    zoomWebinarId: row.zoom_webinar_id ?? undefined,
+    zoomHostId: row.zoom_host_id ?? undefined,
+    zoomStartUrl: row.zoom_start_url ?? undefined,
+  };
+}
+
+type WebinarRegistrationsRow = Database['public']['Tables']['webinar_registrations']['Row'];
+
+function rowToWebinarRegistration(row: WebinarRegistrationsRow): WebinarRegistration {
+  return {
+    id: row.id,
+    userId: row.user_id,
+    webinarId: row.webinar_id,
+    zoomRegistrantId: row.zoom_registrant_id ?? undefined,
+    zoomJoinUrl: row.zoom_join_url ?? undefined,
+    zoomRegisteredAt: row.zoom_registered_at ?? undefined,
+    createdAt: row.created_at,
   };
 }
 
@@ -192,6 +222,9 @@ export async function createWebinar(payload: {
   scheduled_at?: string | null;
   join_url?: string | null;
   replay_url?: string | null;
+  zoom_webinar_id?: string | null;
+  zoom_host_id?: string | null;
+  zoom_start_url?: string | null;
 }): Promise<{ data: Webinar | null; error: string | null }> {
   const supabase = await createServerClient();
   const insert: WebinarsInsert = {
@@ -208,6 +241,9 @@ export async function createWebinar(payload: {
     scheduled_at: payload.scheduled_at ?? null,
     join_url: payload.join_url ?? null,
     replay_url: payload.replay_url ?? null,
+    zoom_webinar_id: payload.zoom_webinar_id ?? null,
+    zoom_host_id: payload.zoom_host_id ?? null,
+    zoom_start_url: payload.zoom_start_url ?? null,
   };
   const { data, error } = await supabase.from('webinars').insert(insert as any).select('*').single();
   if (error) return { data: null, error: error.message };
@@ -230,6 +266,9 @@ export async function updateWebinar(
     scheduled_at?: string | null;
     join_url?: string | null;
     replay_url?: string | null;
+    zoom_webinar_id?: string | null;
+    zoom_host_id?: string | null;
+    zoom_start_url?: string | null;
   }
 ): Promise<{ data: Webinar | null; error: string | null }> {
   const supabase = await createServerClient();
@@ -247,6 +286,9 @@ export async function updateWebinar(
     ...(payload.scheduled_at !== undefined && { scheduled_at: payload.scheduled_at }),
     ...(payload.join_url !== undefined && { join_url: payload.join_url }),
     ...(payload.replay_url !== undefined && { replay_url: payload.replay_url }),
+    ...(payload.zoom_webinar_id !== undefined && { zoom_webinar_id: payload.zoom_webinar_id }),
+    ...(payload.zoom_host_id !== undefined && { zoom_host_id: payload.zoom_host_id }),
+    ...(payload.zoom_start_url !== undefined && { zoom_start_url: payload.zoom_start_url }),
   };
   const { data, error } = await supabase
     .from('webinars')
@@ -284,4 +326,47 @@ export async function registerUserForWebinarAsAdmin(
     .insert({ user_id: userId, webinar_id: webinarId } as never);
   if (error?.code === '23505') return { error: null };
   return { error: error?.message ?? null };
+}
+
+export async function getWebinarRegistration(
+  userId: string,
+  webinarId: string
+): Promise<WebinarRegistration | null> {
+  const supabase = await createServerClient();
+  const { data, error } = await supabase
+    .from('webinar_registrations')
+    .select('*')
+    .eq('user_id', userId)
+    .eq('webinar_id', webinarId)
+    .maybeSingle();
+
+  if (error || !data) return null;
+  return rowToWebinarRegistration(data as WebinarRegistrationsRow);
+}
+
+export async function setWebinarRegistrationZoomDetails(
+  userId: string,
+  webinarId: string,
+  payload: {
+    zoom_registrant_id: string;
+    zoom_join_url: string;
+    zoom_registered_at?: string;
+  }
+): Promise<{ data: WebinarRegistration | null; error: string | null }> {
+  const supabase = await createServerClient();
+  const { data, error } = await supabase
+    .from('webinar_registrations')
+    .update({
+      zoom_registrant_id: payload.zoom_registrant_id,
+      zoom_join_url: payload.zoom_join_url,
+      zoom_registered_at: payload.zoom_registered_at ?? new Date().toISOString(),
+    } as never)
+    .eq('user_id', userId)
+    .eq('webinar_id', webinarId)
+    .select('*')
+    .maybeSingle();
+
+  if (error) return { data: null, error: error.message };
+  if (!data) return { data: null, error: 'Registration not found' };
+  return { data: rowToWebinarRegistration(data as WebinarRegistrationsRow), error: null };
 }

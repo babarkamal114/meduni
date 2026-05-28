@@ -26,6 +26,7 @@ export interface LessonItem {
   completed: boolean;
   body: string;
   hasVideo?: boolean;
+  videoUrl?: string;
   videoDuration?: string;
   lessonType: 'content' | 'quiz';
   questions?: QuizQuestion[];
@@ -117,6 +118,7 @@ function lessonRowToItem(row: LearningLessonsRow, completed: boolean): LessonIte
     completed,
     body: row.body ?? '',
     hasVideo: row.has_video ?? false,
+    videoUrl: row.video_url ?? undefined,
     videoDuration: row.video_duration ?? undefined,
     lessonType,
     questions,

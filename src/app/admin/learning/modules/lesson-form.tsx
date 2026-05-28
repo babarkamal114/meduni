@@ -23,18 +23,52 @@ export function LessonForm({ moduleId, action, initialValues, defaultStepType }:
   const [state, formAction] = useFormState(action, null);
   const stepType = initialValues?.lessonType ?? defaultStepType ?? 'content';
   const [type, setType] = useState<'content' | 'quiz'>(stepType);
-  const [numQuestions, setNumQuestions] = useState(() => initialValues?.questions?.length ?? 1);
+  const [step, setStep] = useState(0);
+  const [questionOptionCounts, setQuestionOptionCounts] = useState<number[]>(
+    () => Array.from({ length: initialValues?.questions?.length ?? 1 }, (_, i) => Math.max(2, initialValues?.questions?.[i]?.options?.length ?? 2))
+  );
   const isQuiz = type === 'quiz';
+  const totalSteps = 4;
+
+  const addQuestion = () => {
+    setQuestionOptionCounts((prev) => [...prev, 2]);
+  };
+
+  const removeQuestion = (questionIndex: number) => {
+    setQuestionOptionCounts((prev) => {
+      if (prev.length <= 1) return prev;
+      return prev.filter((_, idx) => idx !== questionIndex);
+    });
+  };
+
+  const addOption = (questionIndex: number) => {
+    setQuestionOptionCounts((prev) =>
+      prev.map((count, idx) => (idx === questionIndex ? Math.min(6, count + 1) : count))
+    );
+  };
 
   return (
-    <form action={formAction} className="max-w-xl space-y-6 rounded-xl border border-black/[0.06] bg-white p-6">
+    <form action={formAction} className="max-w-3xl space-y-6 rounded-xl border border-black/[0.06] bg-white p-6">
+      <div className="grid gap-2 sm:grid-cols-4">
+        {['Type', 'Details', 'Media/Quiz', 'Review'].map((item, index) => (
+          <div
+            key={item}
+            className={`rounded-lg border px-3 py-2 text-sm ${
+              step === index ? 'border-teal-300 bg-teal-50 text-teal-700' : step > index ? 'border-teal-200 bg-teal-50/60 text-teal-700' : 'border-black/10 bg-slate-50 text-slate-600'
+            }`}
+          >
+            <p className="text-[11px] font-semibold uppercase tracking-wide">Step {index + 1}</p>
+            <p className="font-medium">{item}</p>
+          </div>
+        ))}
+      </div>
       <input type="hidden" name="moduleId" value={moduleId} />
       {initialValues && <input type="hidden" name="lessonId" value={initialValues.id} />}
       <input type="hidden" name="stepType" value={type} />
       {state?.error && (
         <p className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">{state.error}</p>
       )}
-      <div className="space-y-2">
+      {step === 0 && <div className="space-y-2">
         <Label>Step type</Label>
         <div className="flex gap-4">
           <label className="flex items-center gap-2 cursor-pointer">
@@ -58,8 +92,8 @@ export function LessonForm({ moduleId, action, initialValues, defaultStepType }:
             <span>Quiz</span>
           </label>
         </div>
-      </div>
-      <div className="space-y-2">
+      </div>}
+      {(step === 1 || step === 3) && <div className="space-y-2">
         <Label htmlFor="title">Title</Label>
         <Input
           id="title"
@@ -69,10 +103,10 @@ export function LessonForm({ moduleId, action, initialValues, defaultStepType }:
           placeholder={isQuiz ? 'Module check: ECG basics' : 'Introduction to ECG'}
           className="w-full"
         />
-      </div>
-      {!isQuiz && (
+      </div>}
+      {!isQuiz && (step === 1 || step === 2 || step === 3) && (
         <>
-          <div className="space-y-2">
+          {(step === 1 || step === 3) && <div className="space-y-2">
             <Label htmlFor="duration">Duration</Label>
             <Input
               id="duration"
@@ -81,8 +115,8 @@ export function LessonForm({ moduleId, action, initialValues, defaultStepType }:
               placeholder="12 min"
               className="w-full"
             />
-          </div>
-          <div className="space-y-2">
+          </div>}
+          {(step === 1 || step === 3) && <div className="space-y-2">
             <Label htmlFor="body">Body</Label>
             <textarea
               id="body"
@@ -92,8 +126,8 @@ export function LessonForm({ moduleId, action, initialValues, defaultStepType }:
               placeholder="Lesson content..."
               className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm min-h-[120px]"
             />
-          </div>
-          <div className="flex items-center gap-2">
+          </div>}
+          {(step === 2 || step === 3) && <div className="flex items-center gap-2">
             <input
               type="checkbox"
               id="hasVideo"
@@ -102,19 +136,19 @@ export function LessonForm({ moduleId, action, initialValues, defaultStepType }:
               className="h-4 w-4 rounded border-input"
             />
             <Label htmlFor="hasVideo">Has video</Label>
-          </div>
-          <div className="space-y-2">
+          </div>}
+          {(step === 2 || step === 3) && <div className="space-y-2">
             <Label htmlFor="videoUrl">Video URL</Label>
             <Input
               id="videoUrl"
               name="videoUrl"
               type="url"
-              defaultValue={(initialValues as { videoUrl?: string })?.videoUrl ?? undefined}
+              defaultValue={initialValues?.videoUrl}
               placeholder="https://..."
               className="w-full"
             />
-          </div>
-          <div className="space-y-2">
+          </div>}
+          {(step === 2 || step === 3) && <div className="space-y-2">
             <Label htmlFor="videoDuration">Video duration</Label>
             <Input
               id="videoDuration"
@@ -123,10 +157,10 @@ export function LessonForm({ moduleId, action, initialValues, defaultStepType }:
               placeholder="10 min"
               className="w-full"
             />
-          </div>
+          </div>}
         </>
       )}
-      {isQuiz && (
+      {isQuiz && (step === 2 || step === 3) && (
         <>
           <div className="space-y-2">
             <Label htmlFor="body">Intro (optional)</Label>
@@ -147,20 +181,27 @@ export function LessonForm({ moduleId, action, initialValues, defaultStepType }:
                   Add at least one question with two options. Mark the correct option(s).
                 </p>
               </div>
-              <input type="hidden" name="quiz_question_count" value={numQuestions} />
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => setNumQuestions((n) => n + 1)}
-              >
-                Add question
-              </Button>
+              <input type="hidden" name="quiz_question_count" value={questionOptionCounts.length} />
             </div>
             <div className="space-y-4">
-              {Array.from({ length: numQuestions }, (_, i) => i + 1).map((n) => (
+              {questionOptionCounts.map((optionCount, questionIndex) => {
+                const n = questionIndex + 1;
+                return (
                 <div key={n} className="rounded-lg border border-black/10 p-3 space-y-2">
-                  <Label htmlFor={`question_${n}`} className="text-xs">Question {n}</Label>
+                  <div className="flex items-center justify-between gap-2">
+                    <Label htmlFor={`question_${n}`} className="text-xs">Question {n}</Label>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeQuestion(questionIndex)}
+                      disabled={questionOptionCounts.length <= 1}
+                      className="h-7 px-2 text-red-600 hover:bg-red-50 hover:text-red-700"
+                    >
+                      Delete question
+                    </Button>
+                  </div>
+                  <input type="hidden" name={`q${n}_option_count`} value={optionCount} />
                   <Input
                     id={`question_${n}`}
                     name={`question_${n}`}
@@ -168,43 +209,70 @@ export function LessonForm({ moduleId, action, initialValues, defaultStepType }:
                     placeholder="Question text..."
                     className="w-full"
                   />
+                  <div className="space-y-2 mt-2">
+                    {Array.from({ length: optionCount }, (_, optionIndex) => optionIndex + 1).map((optionNumber) => (
+                      <div key={optionNumber} className="grid grid-cols-2 gap-2">
+                        <Input
+                          name={`q${n}_option_${optionNumber}_label`}
+                          placeholder={`Option ${String.fromCharCode(64 + optionNumber)}`}
+                          defaultValue={initialValues?.questions?.[n - 1]?.options?.[optionNumber - 1]?.label ?? ''}
+                        />
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            name={`q${n}_option_${optionNumber}_correct`}
+                            defaultChecked={initialValues?.questions?.[n - 1]?.options?.[optionNumber - 1]?.correct ?? false}
+                            className="h-4 w-4"
+                          />
+                          <Label className="text-xs">Correct</Label>
+                        </div>
+                      </div>
+                    ))}
+                    {optionCount < 6 ? (
+                      <Button type="button" variant="outline" size="sm" onClick={() => addOption(questionIndex)}>
+                        Add option
+                      </Button>
+                    ) : null}
+                  </div>
                   <div className="grid grid-cols-2 gap-2 mt-2">
-                    <Input
-                      name={`q${n}_option_1_label`}
-                      placeholder="Option A"
-                      defaultValue={initialValues?.questions?.[n - 1]?.options?.[0]?.label ?? ''}
-                    />
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        name={`q${n}_option_1_correct`}
-                        defaultChecked={initialValues?.questions?.[n - 1]?.options?.[0]?.correct ?? false}
-                        className="h-4 w-4"
-                      />
-                      <Label className="text-xs">Correct</Label>
+                    <div className="text-xs text-slate-500">
+                      You can add up to 6 options per question.
                     </div>
-                    <Input
-                      name={`q${n}_option_2_label`}
-                      placeholder="Option B"
-                      defaultValue={initialValues?.questions?.[n - 1]?.options?.[1]?.label ?? ''}
-                    />
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        name={`q${n}_option_2_correct`}
-                        defaultChecked={initialValues?.questions?.[n - 1]?.options?.[1]?.correct ?? false}
-                        className="h-4 w-4"
-                      />
-                      <Label className="text-xs">Correct</Label>
-                    </div>
+                    <div />
                   </div>
                 </div>
-              ))}
+              );
+              })}
             </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={addQuestion}
+              className="mt-3"
+            >
+              Add question
+            </Button>
           </div>
         </>
       )}
-      <Button type="submit">Save</Button>
+      {step === 3 ? (
+        <p className="rounded-lg bg-slate-50 p-4 text-sm text-slate-700">
+          Review this step and save when ready.
+        </p>
+      ) : null}
+      <div className="flex items-center justify-between border-t border-black/5 pt-4">
+        <Button type="button" variant="outline" onClick={() => setStep((prev) => Math.max(0, prev - 1))} disabled={step === 0}>
+          Back
+        </Button>
+        {step === totalSteps - 1 ? (
+          <Button type="submit">Save</Button>
+        ) : (
+          <Button type="button" onClick={() => setStep((prev) => Math.min(totalSteps - 1, prev + 1))}>
+            Next
+          </Button>
+        )}
+      </div>
     </form>
   );
 }

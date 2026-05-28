@@ -65,6 +65,21 @@ export function LessonVideoPlayer({ url }: LessonVideoPlayerProps): React.ReactE
     }
   }, []);
 
+  const handleDurationChange = useCallback((event: React.SyntheticEvent<HTMLVideoElement>) => {
+    setDurationSeconds(event.currentTarget.duration || 0);
+  }, []);
+
+  const handleProgressUpdate = useCallback((event: React.SyntheticEvent<HTMLVideoElement>) => {
+    const media = event.currentTarget;
+    const loadedSeconds =
+      media.buffered.length > 0 ? media.buffered.end(media.buffered.length - 1) : 0;
+
+    setProgress({
+      playedSeconds: media.currentTime,
+      loadedSeconds,
+    });
+  }, []);
+
   return (
     <div ref={containerRef} className="rounded-xl overflow-hidden border border-black/5 bg-black mb-6">
       <div className="relative aspect-video">
@@ -78,23 +93,9 @@ export function LessonVideoPlayer({ url }: LessonVideoPlayerProps): React.ReactE
           muted={isMuted}
           volume={isMuted ? 0 : volume}
           playbackRate={playbackRate}
-          onDurationChange={setDurationSeconds}
-          onProgress={(state) =>
-            setProgress({
-              playedSeconds: state.playedSeconds,
-              loadedSeconds: state.loadedSeconds,
-            })
-          }
-          config={{
-            youtube: {
-              playerVars: {
-                controls: 0,
-                modestbranding: 1,
-                rel: 0,
-                iv_load_policy: 3,
-              },
-            },
-          }}
+          onDurationChange={handleDurationChange}
+          onTimeUpdate={handleProgressUpdate}
+          onProgress={handleProgressUpdate}
           className="bg-black"
         />
       </div>

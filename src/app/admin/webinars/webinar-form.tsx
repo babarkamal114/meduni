@@ -7,11 +7,11 @@ import type { WebinarFormResult } from './actions';
 import { titleToSlug } from '@/lib/utils/slug';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { FormMessage } from '@/components/forms/form-message';
 import { ApiErrorAlert } from '@/components/ui/api-error-alert';
 import { cn } from '@/lib/utils/cn';
+import { AdminWizardActions, AdminWizardShell, type AdminWizardStep } from '@/components/admin/admin-wizard';
 
 const STATUS_OPTIONS: { value: WebinarStatus; label: string }[] = [
   { value: 'live', label: 'Live' },
@@ -29,7 +29,24 @@ interface WebinarFormProps {
 export function WebinarForm({ action, initialValues }: WebinarFormProps): React.ReactElement {
   const isEdit = !!initialValues;
   const [title, setTitle] = useState(initialValues?.title ?? '');
+  const [slug, setSlug] = useState(initialValues?.slug ?? '');
+  const [expert, setExpert] = useState(initialValues?.expert ?? '');
+  const [duration, setDuration] = useState(initialValues?.duration ?? '');
+  const [price, setPrice] = useState(initialValues?.price ?? '');
+  const [status, setStatus] = useState<WebinarStatus>(initialValues?.status ?? 'upcoming');
+  const [outcomes, setOutcomes] = useState(initialValues?.outcomes?.join('\n') ?? '');
+  const [scheduledAt, setScheduledAt] = useState(
+    initialValues?.scheduledAt ? new Date(initialValues.scheduledAt).toISOString().slice(0, 16) : ''
+  );
+  const [hasReplay, setHasReplay] = useState(initialValues?.hasReplay ?? false);
+  const [step, setStep] = useState(0);
   const derivedSlug = useMemo(() => titleToSlug(title), [title]);
+  const steps: AdminWizardStep[] = [
+    { id: 'basics', title: 'Basics', description: 'Title and expert' },
+    { id: 'schedule', title: 'Schedule', description: 'Timing and status' },
+    { id: 'details', title: 'Details', description: 'Outcomes and replay' },
+    { id: 'review', title: 'Review', description: 'Confirm and save' },
+  ];
 
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<string, string>> | undefined>(undefined);
@@ -64,17 +81,26 @@ export function WebinarForm({ action, initialValues }: WebinarFormProps): React.
         onDismiss={() => setError(null)}
         autoDismissMs={6000}
       />
-      <form onSubmit={handleSubmit} className="max-w-xl space-y-6 rounded-xl border border-black/[0.06] bg-white p-6">
+      <form onSubmit={handleSubmit}>
+        <AdminWizardShell steps={steps} currentStep={step}>
         {initialValues && <input type="hidden" name="id" value={initialValues.id} />}
-      <div className="space-y-2">
+        {step !== 0 ? <input type="hidden" name="title" value={title} /> : null}
+        {step !== 0 ? <input type="hidden" name="slug" value={isEdit ? slug : derivedSlug} /> : null}
+        {step !== 0 ? <input type="hidden" name="expert" value={expert} /> : null}
+        {step !== 1 ? <input type="hidden" name="duration" value={duration} /> : null}
+        {step !== 1 ? <input type="hidden" name="price" value={price} /> : null}
+        {step !== 1 ? <input type="hidden" name="status" value={status} /> : null}
+        {step !== 2 ? <input type="hidden" name="outcomes" value={outcomes} /> : null}
+        {step !== 1 ? <input type="hidden" name="scheduledAt" value={scheduledAt} /> : null}
+        {step !== 2 && hasReplay ? <input type="hidden" name="hasReplay" value="on" /> : null}
+      {(step === 0 || step === 3) && <div className="space-y-2">
         <Label htmlFor="title">Title *</Label>
         <Input
           id="title"
           name="title"
           required
-          value={isEdit ? undefined : title}
-          defaultValue={isEdit ? initialValues?.title : undefined}
-          onChange={isEdit ? undefined : (e) => setTitle(e.target.value)}
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
           placeholder="Cardiology Update 2025"
           className="w-full"
           error={hasError('title')}
@@ -84,8 +110,8 @@ export function WebinarForm({ action, initialValues }: WebinarFormProps): React.
         {hasError('title') && (
           <FormMessage id="title-error" message={fieldErrors!.title!} type="error" className="mt-1 text-red-600" />
         )}
-      </div>
-      <div className="space-y-2">
+      </div>}
+      {(step === 0 || step === 3) && <div className="space-y-2">
         <Label htmlFor="slug">Slug {!isEdit && '(auto-generated from title)'}</Label>
         {isEdit ? (
           <>
@@ -93,7 +119,8 @@ export function WebinarForm({ action, initialValues }: WebinarFormProps): React.
               id="slug"
               name="slug"
               required
-              defaultValue={initialValues?.slug}
+              value={slug}
+              onChange={(e) => setSlug(e.target.value)}
               placeholder="cardiology-update-2025"
               className="w-full"
               error={hasError('slug')}
@@ -121,14 +148,15 @@ export function WebinarForm({ action, initialValues }: WebinarFormProps): React.
             Generated from title. Edit the title to change the URL slug.
           </p>
         )}
-      </div>
-      <div className="space-y-2">
+      </div>}
+      {(step === 0 || step === 3) && <div className="space-y-2">
         <Label htmlFor="expert">Expert *</Label>
         <Input
           id="expert"
           name="expert"
           required
-          defaultValue={initialValues?.expert}
+          value={expert}
+          onChange={(e) => setExpert(e.target.value)}
           placeholder="Dr. James Carter"
           className="w-full"
           error={hasError('expert')}
@@ -138,15 +166,16 @@ export function WebinarForm({ action, initialValues }: WebinarFormProps): React.
         {hasError('expert') && (
           <FormMessage id="expert-error" message={fieldErrors!.expert!} type="error" className="mt-1 text-red-600" />
         )}
-      </div>
-      <div className="grid grid-cols-2 gap-4">
+      </div>}
+      {(step === 1 || step === 3) && <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="duration">Duration *</Label>
             <Input
             id="duration"
             name="duration"
             required
-            defaultValue={initialValues?.duration}
+            value={duration}
+            onChange={(e) => setDuration(e.target.value)}
             placeholder="1.5 hours"
             className="w-full"
             error={hasError('duration')}
@@ -163,7 +192,8 @@ export function WebinarForm({ action, initialValues }: WebinarFormProps): React.
             id="price"
             name="price"
             required
-            defaultValue={initialValues?.price}
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
             placeholder="£29.99"
             className="w-full"
             error={hasError('price')}
@@ -174,14 +204,15 @@ export function WebinarForm({ action, initialValues }: WebinarFormProps): React.
             <FormMessage id="price-error" message={fieldErrors!.price!} type="error" className="mt-1 text-red-600" />
           )}
         </div>
-      </div>
-      <div className="space-y-2">
+      </div>}
+      {(step === 1 || step === 3) && <div className="space-y-2">
         <Label htmlFor="status">Status *</Label>
         <select
           id="status"
           name="status"
           required
-          defaultValue={initialValues?.status ?? 'upcoming'}
+          value={status}
+          onChange={(e) => setStatus(e.target.value as WebinarStatus)}
           className={cn(
             'flex h-10 w-full rounded-md border bg-background px-3 py-2 text-sm',
             hasError('status') ? 'border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2' : 'border-input'
@@ -198,14 +229,15 @@ export function WebinarForm({ action, initialValues }: WebinarFormProps): React.
         {hasError('status') && (
           <FormMessage id="status-error" message={fieldErrors!.status!} type="error" className="mt-1 text-red-600" />
         )}
-      </div>
-      <div className="space-y-2">
+      </div>}
+      {(step === 2 || step === 3) && <div className="space-y-2">
         <Label htmlFor="outcomes">Outcomes</Label>
         <Textarea
           id="outcomes"
           name="outcomes"
           rows={4}
-          defaultValue={initialValues?.outcomes?.join('\n') ?? ''}
+          value={outcomes}
+          onChange={(e) => setOutcomes(e.target.value)}
           placeholder="One outcome per line (e.g. Understand key diagnostic criteria)"
           className="w-full resize-y min-h-[100px] font-mono text-sm"
           error={hasError('outcomes')}
@@ -218,19 +250,16 @@ export function WebinarForm({ action, initialValues }: WebinarFormProps): React.
         {hasError('outcomes') && (
           <FormMessage id="outcomes-error" message={fieldErrors!.outcomes!} type="error" className="mt-1 text-red-600" />
         )}
-      </div>
-      <div className="space-y-2">
+      </div>}
+      {(step === 1 || step === 3) && <div className="space-y-2">
         <Label htmlFor="scheduledAt">Scheduled at *</Label>
         <Input
           id="scheduledAt"
           name="scheduledAt"
           type="datetime-local"
           required={!isEdit}
-          defaultValue={
-            initialValues?.scheduledAt
-              ? new Date(initialValues.scheduledAt).toISOString().slice(0, 16)
-              : undefined
-          }
+          value={scheduledAt}
+          onChange={(e) => setScheduledAt(e.target.value)}
           className="w-full"
           error={hasError('scheduledAt')}
           aria-invalid={hasError('scheduledAt')}
@@ -239,20 +268,31 @@ export function WebinarForm({ action, initialValues }: WebinarFormProps): React.
         {hasError('scheduledAt') && (
           <FormMessage id="scheduledAt-error" message={fieldErrors!.scheduledAt!} type="error" className="mt-1 text-red-600" />
         )}
-      </div>
-      <div className="flex items-center gap-2">
+      </div>}
+      {(step === 2 || step === 3) && <div className="flex items-center gap-2">
         <input
           type="checkbox"
           id="hasReplay"
           name="hasReplay"
-          defaultChecked={initialValues?.hasReplay ?? false}
+          checked={hasReplay}
+          onChange={(e) => setHasReplay(e.target.checked)}
           className="h-4 w-4 rounded border-input"
         />
         <Label htmlFor="hasReplay">Has replay</Label>
-      </div>
-      <Button type="submit" disabled={isPending}>
-        {isPending ? 'Saving...' : 'Save'}
-      </Button>
+      </div>}
+      {step === 3 ? (
+        <div className="rounded-lg bg-slate-50 p-4 text-sm text-slate-700">
+          Review the webinar details above, then save.
+        </div>
+      ) : null}
+      <AdminWizardActions
+        currentStep={step}
+        totalSteps={steps.length}
+        onBack={() => setStep((prev) => Math.max(0, prev - 1))}
+        onNext={() => setStep((prev) => Math.min(steps.length - 1, prev + 1))}
+        isSubmitting={isPending}
+      />
+    </AdminWizardShell>
     </form>
     </>
   );

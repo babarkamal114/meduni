@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { MobileMenu } from '@/components/layout/mobile-menu';
 import { NavbarWrapper } from '@/components/layout/navbar-wrapper';
 import { siteConfig } from '@/config/site';
@@ -12,20 +13,22 @@ import {
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { logoutAction } from '@/app/(auth)/actions/logout';
 import { getUser } from '@/lib/auth/getUser';
-import { GraduationCap, ChevronDown } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 
 export async function Navbar() {
   const user = await getUser();
 
   return (
     <NavbarWrapper>
-      <Link href="/" className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-500 to-teal-700 flex items-center justify-center">
-          <GraduationCap className="w-6 h-6 text-white" />
-        </div>
-        <span className="font-serif text-2xl tracking-tight text-slate-900">
-          {siteConfig.name}
-        </span>
+      <Link href="/" className="flex items-center">
+        <Image
+          src="/images/med-uni-logo.png"
+          alt={`${siteConfig.name} logo`}
+          width={184}
+          height={56}
+          priority
+          className="h-12 w-auto"
+        />
       </Link>
       <div className="hidden md:flex items-center gap-8">
         {siteConfig.navLinks.map((link) => (

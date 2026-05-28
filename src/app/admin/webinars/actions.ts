@@ -11,6 +11,11 @@ import {
 } from '@/lib/data/webinars';
 import { titleToSlug } from '@/lib/utils/slug';
 import { createNotification } from '@/lib/data/notifications';
+import {
+  ZoomApiError,
+  createZoomMeeting,
+  toZoomDurationMinutes,
+} from '@/lib/integrations/zoom';
 
 const REQUIRED_STATUSES: WebinarStatus[] = ['live', 'upcoming', 'recorded'];
 
@@ -66,6 +71,32 @@ export async function createWebinar(
   }
 
   const scheduled_at = new Date(scheduledAtRaw).toISOString();
+  let zoomPayload: {
+    zoom_host_id: string;
+    zoom_start_url: string | null;
+    join_url: string | null;
+  } | null = null;
+
+  try {
+    const zoomMeeting = await createZoomMeeting({
+      topic: title,
+      startTime: scheduled_at,
+      durationMinutes: toZoomDurationMinutes(duration),
+      agenda: outcomes.length > 0 ? outcomes.join('\n') : undefined,
+    });
+
+    zoomPayload = {
+      zoom_host_id: zoomMeeting.hostId,
+      zoom_start_url: zoomMeeting.startUrl,
+      join_url: zoomMeeting.joinUrl,
+    };
+  } catch (error) {
+    if (error instanceof ZoomApiError) {
+      return { success: false, error: `Zoom error: ${error.message}` };
+    }
+    return { success: false, error: 'Failed to create Zoom webinar. Check Zoom configuration.' };
+  }
+
   const { error } = await createWebinarDb({
     slug,
     title,
@@ -77,6 +108,9 @@ export async function createWebinar(
     has_replay: hasReplay,
     scheduled_at,
     outcomes,
+    zoom_host_id: zoomPayload.zoom_host_id,
+    zoom_start_url: zoomPayload.zoom_start_url,
+    join_url: zoomPayload.join_url,
   });
   if (error) return { success: false, error };
   const notif = await createNotification({

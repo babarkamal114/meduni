@@ -13,25 +13,29 @@ export default async function AdminDashboardPage(): Promise<React.ReactElement> 
   const cards = [
     {
       href: '/admin/webinars',
-      label: 'Manage Webinars',
+      label: 'Webinars',
+      description: 'Create and manage webinars',
       count: webinars.length,
       icon: Video,
     },
     {
       href: '/admin/learning/modules',
-      label: 'Manage Modules',
+      label: 'Modules',
+      description: 'Build modules and steps',
       count: modules.length,
       icon: BookOpen,
     },
     {
       href: '/admin/learning/case-studies',
-      label: 'Manage Case Studies',
+      label: 'Case Studies',
+      description: 'Maintain interactive scenarios',
       count: caseStudies.length,
       icon: GraduationCap,
     },
     {
       href: '/admin/content',
-      label: 'Manage Content',
+      label: 'Content',
+      description: 'Upload PDFs, videos, and quizzes',
       count: contentItems.length,
       icon: FileText,
     },
@@ -39,27 +43,27 @@ export default async function AdminDashboardPage(): Promise<React.ReactElement> 
 
   return (
     <div>
-      <h1 className="font-serif text-3xl text-slate-900 mb-1">Admin</h1>
-      <p className="text-slate-600 text-sm mb-8">
-        Manage webinars, learning modules, case studies, and weekly content. Changes will persist once Supabase is integrated.
+      <h1 className="font-serif text-3xl text-slate-900 mb-1">Admin Dashboard</h1>
+      <p className="mb-8 text-sm text-slate-600">
+        Choose what you want to manage. Each section uses simple step-by-step forms.
       </p>
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid gap-4 sm:grid-cols-2">
         {cards.map((card) => {
           const Icon = card.icon;
           return (
             <Link
               key={card.href}
               href={card.href}
-              className="rounded-2xl border border-black/[0.06] bg-white p-6 shadow-sm transition-all hover:shadow-md hover:border-teal-500/20"
+              className="rounded-xl border border-black/[0.06] bg-white p-5 transition hover:border-teal-300 hover:bg-teal-50/30"
             >
-              <div className="flex items-center gap-3 mb-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-500/10">
+              <div className="mb-2 flex items-center gap-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-teal-500/10">
                   <Icon className="h-5 w-5 text-teal-600" strokeWidth={1.5} />
                 </div>
                 <span className="font-serif text-xl text-slate-800">{card.label}</span>
               </div>
-              <p className="text-2xl font-semibold text-teal-600">{card.count}</p>
-              <p className="text-xs text-slate-400 mt-1">items</p>
+              <p className="text-sm text-slate-600">{card.description}</p>
+              <p className="mt-3 text-sm font-semibold text-teal-700">{card.count} items</p>
             </Link>
           );
         })}

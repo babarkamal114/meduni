@@ -3,18 +3,38 @@ import { notFound } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { getModuleById } from '@/lib/data/learning';
 import { Button } from '@/components/ui/button';
+import { AdminLessonRow } from './admin-lesson-row';
 
 interface LessonsPageProps {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ module_created?: string; created?: string; updated?: string; deleted?: string; delete_error?: string }>;
 }
 
-export default async function AdminLessonsPage({ params }: LessonsPageProps): Promise<React.ReactElement> {
+export default async function AdminLessonsPage({ params, searchParams }: LessonsPageProps): Promise<React.ReactElement> {
   const { id: moduleId } = await params;
+  const query = await searchParams;
   const moduleData = await getModuleById(moduleId);
   if (!moduleData) notFound();
+  const successMessage =
+    query.module_created === '1'
+      ? 'Module created. Now add lessons or quizzes.'
+      : query.created === '1'
+      ? 'Step created.'
+      : query.updated === '1'
+        ? 'Step updated.'
+        : query.deleted === '1'
+          ? 'Step deleted.'
+          : null;
+  const errorMessage = query.delete_error === '1' ? 'Failed to delete step.' : null;
 
   return (
     <div>
+      {successMessage ? (
+        <p className="mb-6 rounded-lg bg-teal-50 px-4 py-3 text-sm font-medium text-teal-800">{successMessage}</p>
+      ) : null}
+      {errorMessage ? (
+        <p className="mb-6 rounded-lg bg-red-50 px-4 py-3 text-sm font-medium text-red-800">{errorMessage}</p>
+      ) : null}
       <Link
         href="/admin/learning/modules"
         className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-teal-600 mb-6"
@@ -56,21 +76,7 @@ export default async function AdminLessonsPage({ params }: LessonsPageProps): Pr
               </tr>
             ) : (
               moduleData.lessons.map((lesson) => (
-                <tr key={lesson.id} className="border-b border-black/5 hover:bg-slate-50/50">
-                  <td className="px-4 py-3">
-                    <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ${lesson.lessonType === 'quiz' ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-700'}`}>
-                      {lesson.lessonType === 'quiz' ? 'Quiz' : 'Lesson'}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 font-medium text-slate-800">{lesson.title}</td>
-                  <td className="px-4 py-3 text-slate-600">{lesson.duration}</td>
-                  <td className="px-4 py-3 text-slate-600">{lesson.hasVideo ? 'Yes' : '—'}</td>
-                  <td className="px-4 py-3">
-                    <Button variant="outline" size="sm" asChild>
-                      <Link href={`/admin/learning/modules/${moduleId}/lessons/${lesson.id}/edit`}>Edit</Link>
-                    </Button>
-                  </td>
-                </tr>
+                <AdminLessonRow key={lesson.id} moduleId={moduleId} lesson={lesson} />
               ))
             )}
           </tbody>

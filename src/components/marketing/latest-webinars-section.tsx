@@ -11,6 +11,7 @@ interface LatestWebinarsSectionProps {
 
 export function LatestWebinarsSection({ webinars = [] }: LatestWebinarsSectionProps): React.ReactElement {
   const upcoming = webinars.filter((w) => w.status === 'live' || w.status === 'upcoming').slice(0, 3);
+  const hasUpcoming = upcoming.length > 0;
   return (
     <section id="webinars" className="py-32 sec-tint">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
@@ -27,13 +28,26 @@ export function LatestWebinarsSection({ webinars = [] }: LatestWebinarsSectionPr
             />
           </div>
         </Reveal>
-        <div className="grid md:grid-cols-3 gap-6 mb-12">
-          {upcoming.map((webinar, i) => (
-            <Reveal key={webinar.id} style={{ transitionDelay: `${i * 0.1}s` }}>
-              <MarketingWebinarCard webinar={webinar} />
-            </Reveal>
-          ))}
-        </div>
+        {hasUpcoming ? (
+          <div className="grid md:grid-cols-3 gap-6 mb-12">
+            {upcoming.map((webinar, i) => (
+              <Reveal key={webinar.id} style={{ transitionDelay: `${i * 0.1}s` }}>
+                <MarketingWebinarCard webinar={webinar} />
+              </Reveal>
+            ))}
+          </div>
+        ) : (
+          <Reveal className="mb-12">
+            <div className="rounded-3xl border border-black/[.06] bg-white p-8 text-center shadow-lg shadow-teal-500/5">
+              <p className="text-slate-700 text-lg font-medium mb-2">
+                New sessions are being scheduled.
+              </p>
+              <p className="text-slate-600 text-sm">
+                Browse all webinars to view available replays and upcoming releases.
+              </p>
+            </div>
+          </Reveal>
+        )}
         <Reveal className="text-center">
           <GlowButton href="/webinars" className="inline-flex">
             View all webinars

@@ -28,6 +28,9 @@ export interface WebinarsRow {
   scheduled_at: string | null;
   join_url: string | null;
   replay_url: string | null;
+  zoom_webinar_id: string | null;
+  zoom_host_id: string | null;
+  zoom_start_url: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -47,6 +50,9 @@ export interface WebinarsInsert {
   scheduled_at?: string | null;
   join_url?: string | null;
   replay_url?: string | null;
+  zoom_webinar_id?: string | null;
+  zoom_host_id?: string | null;
+  zoom_start_url?: string | null;
   created_at?: string;
   updated_at?: string;
 }
@@ -65,6 +71,9 @@ export interface WebinarsUpdate {
   scheduled_at?: string | null;
   join_url?: string | null;
   replay_url?: string | null;
+  zoom_webinar_id?: string | null;
+  zoom_host_id?: string | null;
+  zoom_start_url?: string | null;
   updated_at?: string;
 }
 
@@ -72,6 +81,9 @@ export interface WebinarRegistrationsRow {
   id: string;
   user_id: string;
   webinar_id: string;
+  zoom_registrant_id: string | null;
+  zoom_join_url: string | null;
+  zoom_registered_at: string | null;
   created_at: string;
 }
 
@@ -79,6 +91,9 @@ export interface WebinarRegistrationsInsert {
   id?: string;
   user_id: string;
   webinar_id: string;
+  zoom_registrant_id?: string | null;
+  zoom_join_url?: string | null;
+  zoom_registered_at?: string | null;
   created_at?: string;
 }
 

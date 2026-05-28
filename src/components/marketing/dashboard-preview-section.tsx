@@ -29,7 +29,7 @@ export function DashboardPreviewSection(): React.ReactElement {
   return (
     <section id="mission" className="py-32 sec-tint">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
-        <div className="grid lg:grid-cols-2 gap-16 items-center">
+        <div className="grid lg:grid-cols-2 gap-12 xl:gap-16 items-center">
           <Reveal variant="left">
             <SectionHeading
               eyebrow="Our mission"
@@ -58,7 +58,7 @@ export function DashboardPreviewSection(): React.ReactElement {
             </div>
           </Reveal>
           <Reveal variant="right">
-            <div className="bg-white rounded-3xl p-6 relative border border-black/[.06] shadow-xl shadow-teal-500/5">
+            <div className="bg-white rounded-3xl p-5 sm:p-6 relative border border-black/[.06] shadow-xl shadow-teal-500/5">
               <div className="flex items-center gap-2 mb-6">
                 <div className="w-3 h-3 rounded-full bg-red-300" />
                 <div className="w-3 h-3 rounded-full bg-yellow-300" />
@@ -107,7 +107,7 @@ export function DashboardPreviewSection(): React.ReactElement {
                   <div className="text-xs text-slate-600 mb-3 uppercase tracking-wider">
                     Upcoming webinar
                   </div>
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-start sm:items-center gap-3">
                     <div className="w-12 h-12 rounded-xl bg-teal-500/10 flex items-center justify-center">
                       <Video className="w-6 h-6 text-teal-600" />
                     </div>
@@ -119,7 +119,7 @@ export function DashboardPreviewSection(): React.ReactElement {
                         Sat, 2nd May 2026 - 18:00 GMT
                       </div>
                     </div>
-                    <div className="px-3 py-1 rounded-full bg-teal-500/10 text-teal-600 text-xs font-medium">
+                    <div className="px-3 py-1 rounded-full bg-teal-500/10 text-teal-600 text-xs font-medium mt-1 sm:mt-0">
                       Zoom
                     </div>
                   </div>

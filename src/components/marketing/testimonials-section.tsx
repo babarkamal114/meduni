@@ -6,24 +6,24 @@ import { cn } from '@/lib/utils/cn';
 const TESTIMONIALS = [
   {
     quote:
-      'The dashboard made it easy to track my progress. I completed three modules and got my CPD certificates without chasing anyone.',
-    name: 'Dr. Sarah Mitchell',
-    title: 'GP, London',
-    initials: 'SM',
+      'The webinars are brilliant for exam revision. I watch the replay before OSCEs and the quizzes help me identify weak areas fast.',
+    name: 'Priya Kaur',
+    title: 'Final Year Medical Student, UCL',
+    initials: 'PK',
   },
   {
     quote:
-      'I love having all my webinar tickets and replays in one place. The AI summaries save me hours when I need to revisit a session.',
+      'Having all my webinar tickets and replays in one place is a game-changer. I revisit sessions whenever I need to refresh a topic.',
     name: 'Dr. James Chen',
     title: 'Cardiology Registrar',
     initials: 'JC',
   },
   {
     quote:
-      'Case studies and quizzes in My Learning fit perfectly around my schedule. The platform feels built for busy clinicians.',
-    name: 'Dr. Emma Watson',
-    title: 'Paediatrician',
-    initials: 'EW',
+      'Case studies and module quizzes fit perfectly around my schedule. The certificates are a great addition to my portfolio.',
+    name: 'Dr. Sarah Mitchell',
+    title: 'Foundation Year Doctor',
+    initials: 'SM',
   },
 ];
 
@@ -73,13 +73,13 @@ export function TestimonialsSection(): React.ReactElement {
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <Reveal className="max-w-2xl mb-20">
           <SectionHeading
-            eyebrow="What clinicians say"
+            eyebrow="What learners say"
             title={
               <>
-                Trusted by <span className="italic grad-text">medical professionals</span>
+                Trusted by <span className="italic grad-text">students and professionals</span>
               </>
             }
-            description="See how the platform supports continuous learning and CPD."
+            description="See how MedUni supports exam preparation and continuous learning."
           />
         </Reveal>
         <div className="grid md:grid-cols-3 gap-6">

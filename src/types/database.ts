@@ -81,6 +81,7 @@ export interface WebinarRegistrationsRow {
   id: string;
   user_id: string;
   webinar_id: string;
+  stripe_payment_intent_id: string | null;
   zoom_registrant_id: string | null;
   zoom_join_url: string | null;
   zoom_registered_at: string | null;
@@ -91,10 +92,18 @@ export interface WebinarRegistrationsInsert {
   id?: string;
   user_id: string;
   webinar_id: string;
+  stripe_payment_intent_id?: string | null;
   zoom_registrant_id?: string | null;
   zoom_join_url?: string | null;
   zoom_registered_at?: string | null;
   created_at?: string;
+}
+
+export interface EmailPreferencesRow {
+  user_id: string;
+  marketing_emails: boolean;
+  purchase_emails: boolean;
+  updated_at: string;
 }
 
 export interface ProfilesRow {
@@ -285,6 +294,7 @@ export interface Database {
       user_content_quiz_attempts: { Row: UserContentQuizAttemptsRow; Insert: Partial<UserContentQuizAttemptsRow>; Update: Partial<UserContentQuizAttemptsRow> };
       notifications: { Row: NotificationsRow; Insert: Partial<NotificationsRow>; Update: Partial<NotificationsRow> };
       notification_reads: { Row: NotificationReadsRow; Insert: Partial<NotificationReadsRow>; Update: Partial<NotificationReadsRow> };
+      email_preferences: { Row: EmailPreferencesRow; Insert: Partial<EmailPreferencesRow>; Update: Partial<EmailPreferencesRow> };
     };
     Views: {
       [_ in never]: never;

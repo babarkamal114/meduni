@@ -7,6 +7,7 @@ import { Reveal } from '@/components/marketing/reveal';
 import { SectionHeading } from '@/components/marketing/section-heading';
 import { GlowButtonSubmit } from '@/components/marketing/glow-button';
 import { submitContactForm } from '@/app/(auth)/actions/contact';
+import { siteConfig } from '@/config/site';
 import { cn } from '@/lib/utils/cn';
 
 const inputClass =
@@ -74,11 +75,11 @@ export function ContactSection(): React.ReactElement {
                 </p>
                 <div className="space-y-3 text-sm text-slate-600">
                   <Link
-                    href="mailto:info@meduni.co.uk"
+                    href={`mailto:${siteConfig.contactEmail}`}
                     className="flex items-center gap-3 hover:text-teal-600 transition-colors"
                   >
                     <Mail className="w-4 h-4 text-teal-600" />
-                    info@meduni.co.uk
+                    {siteConfig.contactEmail}
                   </Link>
                   <div className="flex items-center gap-3 text-slate-500">
                     <MessageCircle className="w-4 h-4 text-teal-600" />

@@ -14,7 +14,7 @@ export default function AdminCaseStudyNewPage(): React.ReactElement {
         Back to Case Studies
       </Link>
       <h1 className="font-serif text-3xl text-slate-900 mb-1">Add Case Study</h1>
-      <p className="text-slate-600 text-sm mb-8">Create a new case study. Steps and choices editor coming with Supabase.</p>
+      <p className="text-slate-600 text-sm mb-8">Create a new interactive case study.</p>
       <CaseStudyForm action={createCaseStudy} />
     </div>
   );

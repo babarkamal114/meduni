@@ -5,11 +5,15 @@ import { SectionHeading } from '@/components/marketing/section-heading';
 import { cn } from '@/lib/utils/cn';
 import { ChevronDown } from 'lucide-react';
 
-const FAQ_ITEMS = [
+interface FaqSectionProps {
+  pricingDescription?: string;
+}
+
+function buildFaqItems(pricingDescription: string) {
+  return [
   {
     question: 'How much do webinars cost?',
-    answer:
-      'We use pay-per-webinar pricing, typically £25–£49 depending on topic and length. There are no subscriptions. Each purchase includes live attendance and on-demand replay access.',
+    answer: pricingDescription,
   },
   {
     question: 'Do I get CPD certificates?',
@@ -26,7 +30,8 @@ const FAQ_ITEMS = [
     answer:
       'After signing up and purchasing a ticket, everything appears in your dashboard: upcoming webinars under Webinars and My Tickets, replays in the webinar library, and learning content under My Learning.',
   },
-];
+  ];
+}
 
 function FaqItem({
   question,
@@ -53,7 +58,10 @@ function FaqItem({
   );
 }
 
-export function FaqSection(): React.ReactElement {
+export function FaqSection({
+  pricingDescription = 'We use pay-per-webinar pricing, with sessions starting from just £3. There are no subscriptions. Each purchase includes live attendance and on-demand replay access.',
+}: FaqSectionProps): React.ReactElement {
+  const FAQ_ITEMS = buildFaqItems(pricingDescription);
   return (
     <section id="faq" className="py-32 sec-tint">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">

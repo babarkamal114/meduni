@@ -45,7 +45,7 @@ export function TimelineSection(): React.ReactElement {
                   From browsing to <span className="italic grad-text">replay</span>
                 </>
               }
-              description="From browsing to replay in a few steps."
+              description="Your journey from discovery to certification in four simple steps."
             />
           </div>
         </Reveal>

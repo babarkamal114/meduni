@@ -37,6 +37,7 @@ export default async function AdminModulesPage({ searchParams }: AdminModulesPag
           <Button>Add Module</Button>
         </Link>
       </div>
+      <div className="overflow-x-auto">
       <div className="rounded-xl border border-black/[0.06] bg-white overflow-hidden">
         <table className="w-full text-left">
           <thead>
@@ -59,6 +60,7 @@ export default async function AdminModulesPage({ searchParams }: AdminModulesPag
             )}
           </tbody>
         </table>
+      </div>
       </div>
     </div>
   );

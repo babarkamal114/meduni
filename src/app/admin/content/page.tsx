@@ -1,20 +1,7 @@
 import Link from 'next/link';
 import { getContentItems } from '@/lib/data/learning';
 import { Button } from '@/components/ui/button';
-import { deleteContentItem } from './actions';
-import { FileText, HelpCircle, Video } from 'lucide-react';
-
-const typeLabels: Record<string, string> = {
-  pdf: 'PDF',
-  quiz: 'Quiz',
-  video: 'Video',
-};
-
-const typeIcons = {
-  pdf: FileText,
-  quiz: HelpCircle,
-  video: Video,
-};
+import { AdminContentRow } from './admin-content-row';
 
 interface AdminContentPageProps {
   searchParams: Promise<{ created?: string; updated?: string; deleted?: string; delete_error?: string }>;
@@ -62,54 +49,32 @@ export default async function AdminContentPage({ searchParams }: AdminContentPag
           </div>
         </div>
       </div>
-      <div className="rounded-xl border border-black/[0.06] bg-white overflow-hidden">
-        <table className="w-full text-left">
-          <thead>
-            <tr className="border-b border-black/5 bg-slate-50/80">
-              <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-slate-500">Type</th>
-              <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-slate-500">Title</th>
-              <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-slate-500">Meta</th>
-              <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-slate-500 w-32">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {items.length === 0 ? (
-              <tr>
-                <td colSpan={4} className="px-4 py-8 text-center text-slate-500 text-sm">
-                  No content yet. Add PDF, video, or quiz to get started.
-                </td>
+      <div className="overflow-x-auto">
+        <div className="rounded-xl border border-black/[0.06] bg-white overflow-hidden">
+          <table className="w-full text-left">
+            <thead>
+              <tr className="border-b border-black/5 bg-slate-50/80">
+                <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-slate-500">Type</th>
+                <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-slate-500">Title</th>
+                <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-slate-500">Meta</th>
+                <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-slate-500 w-32">Actions</th>
               </tr>
-            ) : (
-            items.map((item) => {
-              const Icon = typeIcons[item.type];
-              return (
-                <tr key={item.id} className="border-b border-black/5 hover:bg-slate-50/50">
-                  <td className="px-4 py-3">
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-teal-500/10 px-2.5 py-0.5 text-xs font-medium text-teal-600">
-                      <Icon className="h-3.5 w-3.5" />
-                      {typeLabels[item.type]}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 font-medium text-slate-800">{item.title}</td>
-                  <td className="px-4 py-3 text-slate-600 text-sm">{item.meta}</td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2">
-                      <Button variant="outline" size="sm" asChild>
-                        <Link href={`/admin/content/${item.id}/edit`}>Edit</Link>
-                      </Button>
-                      <form action={deleteContentItem.bind(null, item.id)} className="inline">
-                        <Button type="submit" variant="ghost" size="sm" className="text-red-600 hover:text-red-700 hover:bg-red-50">
-                          Delete
-                        </Button>
-                      </form>
-                    </div>
+            </thead>
+            <tbody>
+              {items.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="px-4 py-8 text-center text-slate-500 text-sm">
+                    No content yet. Add PDF, video, or quiz to get started.
                   </td>
                 </tr>
-              );
-            })
-            )}
-          </tbody>
-        </table>
+              ) : (
+                items.map((item) => (
+                  <AdminContentRow key={item.id} item={item} />
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

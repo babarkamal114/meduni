@@ -61,6 +61,11 @@ export async function getPurchasedWebinarSlugs(): Promise<string[]> {
 }
 
 export async function purchaseWebinarTicket(webinarSlug: string): Promise<PurchaseTicketResult> {
+  const { isStripeConfigured } = await import('@/lib/stripe/server');
+  if (isStripeConfigured()) {
+    return { success: false, error: 'Please complete payment through the checkout form.' };
+  }
+
   const webinar = await getWebinarBySlug(webinarSlug);
   if (!webinar) return { success: false, error: 'Webinar not found' };
 
@@ -80,7 +85,7 @@ export async function purchaseWebinarTicket(webinarSlug: string): Promise<Purcha
   cookieStore.set(PURCHASED_WEBINARS_COOKIE, next.join(','), {
     path: '/',
     maxAge: COOKIE_MAX_AGE,
-    httpOnly: false,
+    httpOnly: true,
     sameSite: 'lax',
   });
   return { success: true, slug: webinarSlug };

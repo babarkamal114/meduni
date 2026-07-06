@@ -110,7 +110,7 @@ export function DashboardWebinarTicketCard({
 
           <div className="mt-auto pt-4 border-t border-slate-100">
             <span className="text-xs text-slate-500">Price</span>
-            <p className="font-serif text-3xl text-teal-600">£{price}</p>
+            <p className="font-serif text-3xl text-teal-600">{price.startsWith('£') ? price : `£${price}`}</p>
           </div>
         </Link>
 

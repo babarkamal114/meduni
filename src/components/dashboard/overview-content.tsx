@@ -6,7 +6,7 @@ import { UpcomingWebinarRow } from '@/components/dashboard/upcoming-webinar-row'
 import { LearningProgressBlock } from '@/components/dashboard/learning-progress-block';
 import { ActivityFeed } from '@/components/dashboard/activity-feed';
 import { Button } from '@/components/ui/button';
-import { Heart, Baby } from 'lucide-react';
+import { Radio, Calendar } from 'lucide-react';
 import type { Webinar } from '@/lib/data/webinars';
 import type { RecentActivityItem } from '@/lib/data/dashboard';
 
@@ -36,6 +36,8 @@ export function OverviewContent({
   activities,
 }: OverviewContentProps): React.ReactElement {
   const name = userName?.split(' ')[0] ?? 'there';
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
   const quizDisplay =
     stats.quizAveragePercent != null ? `${stats.quizAveragePercent}%` : '—';
   const activeBadge =
@@ -48,14 +50,14 @@ export function OverviewContent({
       <div className="px-6 lg:px-8 py-8 max-w-[1400px]">
         <div className="mb-8">
           <h1 className="font-serif text-3xl sm:text-4xl text-slate-900 mb-1">
-            Good morning, {name}
+            {greeting}, {name}
           </h1>
           <p className="text-slate-600">Here&apos;s your learning overview for this week.</p>
         </div>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <StatsCard
-            title="Webinars Attended"
+            title="Tickets Purchased"
             value={stats.webinarsAttended}
             icon="Video"
           />
@@ -99,9 +101,9 @@ export function OverviewContent({
                     statusLabel={w.statusLabel}
                     icon={
                       w.status === 'live' ? (
-                        <Heart className="h-6 w-6 text-red-400" strokeWidth={1.5} />
+                        <Radio className="h-6 w-6 text-red-400" strokeWidth={1.5} />
                       ) : (
-                        <Baby className="h-6 w-6 text-teal-500" strokeWidth={1.5} />
+                        <Calendar className="h-6 w-6 text-teal-500" strokeWidth={1.5} />
                       )
                     }
                     href={`/dashboard/webinars/${w.slug}`}

@@ -85,6 +85,7 @@ export function DashboardSidebar({
                   key={item.href}
                   href={item.href}
                   onClick={onClose}
+                  aria-current={isActive ? 'page' : undefined}
                   className={cn(
                     'sidebar-link flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-250',
                     isActive
@@ -101,6 +102,7 @@ export function DashboardSidebar({
               <Link
                 href="/admin"
                 onClick={onClose}
+                aria-current={pathname?.startsWith('/admin') ? 'page' : undefined}
                 className={cn(
                   'sidebar-link flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-250',
                   pathname?.startsWith('/admin')
@@ -120,6 +122,7 @@ export function DashboardSidebar({
             <Link
               href="/dashboard/settings"
               onClick={onClose}
+              aria-current={pathname === '/dashboard/settings' ? 'page' : undefined}
               className={cn(
                 'sidebar-link flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-250',
                 pathname === '/dashboard/settings'

@@ -1,4 +1,5 @@
 import { CertificateCard } from '@/components/dashboard/certificate-card';
+import { EmptyState } from '@/components/dashboard/empty-state';
 import { GraduationCap } from 'lucide-react';
 import { getCertificationsWithDetails } from '@/lib/data/learning';
 import { getUser } from '@/lib/auth/getUser';
@@ -17,7 +18,11 @@ export default async function DashboardCertificatesPage(): Promise<React.ReactEl
         </p>
       </div>
       {certs.length === 0 ? (
-        <p className="text-sm text-slate-500 py-4">You have not earned any certificates yet. Complete modules and pass their quizzes to earn one.</p>
+        <EmptyState
+          icon={GraduationCap}
+          title="No certificates yet"
+          description="Complete modules and pass their quizzes to earn your first certificate."
+        />
       ) : (
         <div className="grid sm:grid-cols-2 gap-6">
           {certs.map((c) => (

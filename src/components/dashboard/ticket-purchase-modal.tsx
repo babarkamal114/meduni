@@ -254,11 +254,13 @@ export function TicketPurchaseModal({
 
   const isRecorded = data?.type === 'recorded';
   const ctaLabel = isRecorded ? 'Buy & Watch Now' : 'Purchase Ticket';
+  const stripeConfigured = Boolean(stripePromise);
   const useStripeFlow = Boolean(
-    webinarSlug &&
-      (stripePromise ? clientSecret || intentError || state === 'loading' : true)
+    webinarSlug && stripeConfigured &&
+      (clientSecret || intentError || state === 'loading')
   );
   const showPaymentForm = Boolean(clientSecret && webinarSlug);
+  const showFallbackButton = Boolean(webinarSlug && !stripeConfigured);
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -288,7 +290,7 @@ export function TicketPurchaseModal({
               <div className="flex items-center justify-between">
                 <span className="text-sm text-slate-500">Total</span>
                 <span className="font-serif text-2xl text-teal-600">
-                  £{data.price}
+                  {data.price.startsWith('£') ? data.price : `£${data.price}`}
                 </span>
               </div>
             </div>
@@ -352,9 +354,9 @@ export function TicketPurchaseModal({
                   Add <code className="text-xs bg-slate-200 px-1 rounded">NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY</code> and <code className="text-xs bg-slate-200 px-1 rounded">STRIPE_SECRET_KEY</code> to <code className="text-xs bg-slate-200 px-1 rounded">.env.local</code> (e.g. <code className="text-xs bg-slate-200 px-1 rounded">pk_test_...</code> and <code className="text-xs bg-slate-200 px-1 rounded">sk_test_...</code> from the Stripe Dashboard).
                 </p>
               </div>
-            ) : !useStripeFlow ? (
+            ) : showFallbackButton || !useStripeFlow ? (
               <Button
-                className={`w-full justify-center py-3.5 text-base ${state === 'success' ? 'bg-green-600 hover:bg-green-600' : ''}`}
+                className={`w-full justify-center py-3.5 text-base ${state === 'success' ? 'bg-teal-600 hover:bg-teal-600' : ''}`}
                 onClick={handleLegacyPurchase}
                 disabled={state === 'loading'}
               >

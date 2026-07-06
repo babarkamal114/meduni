@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { siteConfig } from '@/config/site';
 import { getWebinars } from '@/lib/data/webinars';
+import { getPricingConfig } from '@/lib/data/settings';
 import { HeroSection } from '@/components/marketing/hero-section';
 import { TechMarqueeSection } from '@/components/marketing/tech-marquee-section';
 import { FeaturesSection } from '@/components/marketing/features-section';
@@ -20,7 +21,7 @@ export const metadata: Metadata = {
 };
 
 export default async function HomePage(): Promise<React.ReactElement> {
-  const webinars = await getWebinars();
+  const [webinars, pricing] = await Promise.all([getWebinars(), getPricingConfig()]);
   return (
     <>
       <HeroSection />
@@ -29,9 +30,9 @@ export default async function HomePage(): Promise<React.ReactElement> {
       <DashboardPreviewSection />
       <LatestWebinarsSection webinars={webinars} />
       <ArchitectureSection />
-      <PricingSection />
+      <PricingSection displayText={pricing.display_text} description={pricing.description} />
       <TestimonialsSection />
-      <FaqSection />
+      <FaqSection pricingDescription={pricing.description} />
       <CtaStrip />
       <TimelineSection />
       <ContactSection />

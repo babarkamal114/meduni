@@ -29,6 +29,13 @@ export interface SendEmailOptions {
   from?: string;
 }
 
+export interface BatchEmailItem {
+  to: string | string[];
+  subject: string;
+  html: string;
+  from?: string;
+}
+
 export async function sendEmail({
   to,
   subject,
@@ -62,4 +69,40 @@ export async function sendEmail({
     console.log('[Resend] Sent:', data.id, 'to', to);
   }
   return { success: true };
+}
+
+export async function sendBatchEmails(
+  emails: BatchEmailItem[],
+): Promise<{ success: boolean; error?: Error }> {
+  if (emails.length === 0) return { success: true };
+
+  if (!resend) {
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[Resend] No RESEND_API_KEY; skipping batch of ${emails.length} emails`);
+      return { success: true };
+    }
+    return { success: false, error: new Error('Email is not configured') };
+  }
+
+  const defaultFrom = getEffectiveFrom(process.env.RESEND_FROM);
+  const payload = emails.map((e) => ({
+    from: getEffectiveFrom(e.from ?? defaultFrom),
+    to: Array.isArray(e.to) ? e.to : [e.to],
+    subject: e.subject,
+    html: e.html,
+  }));
+
+  try {
+    const { data, error } = await resend.batch.send(payload);
+    if (error) {
+      return { success: false, error: new Error(error.message) };
+    }
+    if (process.env.NODE_ENV === 'development' && data) {
+      console.log(`[Resend] Batch sent: ${(data as { data: unknown[] }).data?.length ?? 0} emails`);
+    }
+    return { success: true };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Batch send failed';
+    return { success: false, error: new Error(message) };
+  }
 }

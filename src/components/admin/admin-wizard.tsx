@@ -20,6 +20,8 @@ interface AdminWizardActionsProps {
   totalSteps: number;
   onBack: () => void;
   onNext: () => void;
+  /** Return false to block advancing to next step (e.g. validation failed). */
+  onBeforeNext?: () => boolean;
   isSubmitting?: boolean;
   disableSubmit?: boolean;
   nextLabel?: string;
@@ -72,12 +74,18 @@ export function AdminWizardActions({
   totalSteps,
   onBack,
   onNext,
+  onBeforeNext,
   isSubmitting = false,
   disableSubmit = false,
   nextLabel = 'Next',
   submitLabel = 'Save',
 }: AdminWizardActionsProps): React.ReactElement {
   const isLastStep = currentStep === totalSteps - 1;
+
+  const handleNext = () => {
+    if (onBeforeNext && !onBeforeNext()) return;
+    onNext();
+  };
 
   return (
     <div className="flex items-center justify-between border-t border-black/5 pt-4">
@@ -89,7 +97,7 @@ export function AdminWizardActions({
           {isSubmitting ? 'Saving...' : submitLabel}
         </Button>
       ) : (
-        <Button type="button" onClick={onNext} disabled={isSubmitting}>
+        <Button type="button" onClick={handleNext} disabled={isSubmitting}>
           {nextLabel}
         </Button>
       )}

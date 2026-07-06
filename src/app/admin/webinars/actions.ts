@@ -16,8 +16,8 @@ import {
   createZoomMeeting,
   toZoomDurationMinutes,
 } from '@/lib/integrations/zoom';
-
-const REQUIRED_STATUSES: WebinarStatus[] = ['live', 'upcoming', 'recorded'];
+import { webinarSchema, formatZodFieldErrors } from '@/lib/validations/admin';
+import type { AdminActionResult } from '@/types/actions';
 
 export type WebinarFormState = {
   title: string;
@@ -31,46 +31,42 @@ export type WebinarFormState = {
   outcomes: string;
 };
 
-export type WebinarFormResult = {
-  success: boolean;
-  error?: string;
-  fieldErrors?: Partial<Record<keyof WebinarFormState | 'scheduledAt', string>>;
-};
+export type WebinarFormResult = AdminActionResult;
+
+function extractWebinarFields(formData: FormData) {
+  return {
+    title: ((formData.get('title') as string) ?? '').trim(),
+    expert: ((formData.get('expert') as string) ?? '').trim(),
+    duration: ((formData.get('duration') as string) ?? '').trim(),
+    price: ((formData.get('price') as string) ?? '').trim(),
+    status: ((formData.get('status') as string) ?? '').trim() as WebinarStatus,
+    scheduledAt: ((formData.get('scheduledAt') as string) ?? '').trim(),
+    hasReplay: formData.get('hasReplay') === 'on',
+    outcomes: ((formData.get('outcomes') as string) ?? '').trim(),
+  };
+}
 
 export async function createWebinar(
   _prev: unknown,
   formData: FormData
 ): Promise<WebinarFormResult> {
   await requireAdmin();
-  const title = (formData.get('title') as string)?.trim() ?? '';
-  const expert = (formData.get('expert') as string)?.trim() ?? '';
-  const duration = (formData.get('duration') as string)?.trim() ?? '';
-  const price = (formData.get('price') as string)?.trim() ?? '';
-  const status = (formData.get('status') as string)?.trim() as WebinarStatus;
-  const scheduledAtRaw = (formData.get('scheduledAt') as string)?.trim() ?? '';
-  const hasReplay = formData.get('hasReplay') === 'on';
-  const outcomesRaw = (formData.get('outcomes') as string)?.trim() ?? '';
+  const raw = extractWebinarFields(formData);
+  const parsed = webinarSchema.safeParse(raw);
+  if (!parsed.success) {
+    return { success: false, error: 'Please fix the errors below.', fieldErrors: formatZodFieldErrors(parsed.error) };
+  }
+  const { title, expert, duration, price, status, scheduledAt, hasReplay, outcomes: outcomesRaw } = parsed.data;
   const outcomes = outcomesRaw
     ? outcomesRaw.split('\n').map((s) => s.trim()).filter(Boolean)
     : [];
 
-  const fieldErrors: WebinarFormResult['fieldErrors'] = {};
-  if (!title) fieldErrors.title = 'Title is required';
-  if (!expert) fieldErrors.expert = 'Expert is required';
-  if (!duration) fieldErrors.duration = 'Duration is required';
-  if (!price) fieldErrors.price = 'Price is required';
-  if (!status || !REQUIRED_STATUSES.includes(status)) fieldErrors.status = 'Status is required';
-  if (!scheduledAtRaw) fieldErrors.scheduledAt = 'Scheduled date and time is required';
-  if (Object.keys(fieldErrors).length > 0) {
-    return { success: false, error: 'Please fix the errors below.', fieldErrors };
-  }
-
   const slug = titleToSlug(title);
   if (!slug) {
-    return { success: false, error: 'Title must contain at least one letter or number.', fieldErrors: { title: 'Title must contain at least one letter or number.' } };
+    return { success: false, error: 'Title must contain at least one letter or number.', fieldErrors: { title: ['Title must contain at least one letter or number.'] } };
   }
 
-  const scheduled_at = new Date(scheduledAtRaw).toISOString();
+  const scheduled_at = new Date(scheduledAt).toISOString();
   let zoomPayload: {
     zoom_host_id: string;
     zoom_start_url: string | null;
@@ -121,6 +117,17 @@ export async function createWebinar(
   if (notif.error) {
     console.error('[notifications] Failed to create webinar notification:', notif.error);
   }
+  try {
+    const { sendMarketingEmailToAll } = await import('@/lib/email/send-marketing-email');
+    await sendMarketingEmailToAll({
+      contentType: 'webinar',
+      contentTitle: title,
+      ctaUrl: `/webinars/${slug}`,
+      ctaLabel: 'View Webinar',
+    });
+  } catch (err) {
+    console.error('[marketing-email] webinar email failed:', err);
+  }
   revalidatePath('/admin/webinars');
   revalidatePath('/');
   revalidatePath('/webinars');
@@ -131,31 +138,29 @@ export async function createWebinar(
 export async function updateWebinar(
   _prev: unknown,
   formData: FormData
-): Promise<{ success: boolean; error?: string }> {
+): Promise<WebinarFormResult> {
   await requireAdmin();
   const id = formData.get('id') as string;
   if (!id) return { success: false, error: 'Missing id' };
 
-  const title = (formData.get('title') as string)?.trim() ?? '';
-  const slug = (formData.get('slug') as string)?.trim() ?? '';
-  const expert = (formData.get('expert') as string)?.trim() ?? '';
-  const duration = (formData.get('duration') as string)?.trim() ?? '';
-  const price = (formData.get('price') as string)?.trim() ?? '';
-  const status = (formData.get('status') as WebinarStatus) ?? 'upcoming';
-  const scheduledAtRaw = (formData.get('scheduledAt') as string)?.trim() ?? '';
-  const hasReplay = formData.get('hasReplay') === 'on';
-  const outcomesRaw = (formData.get('outcomes') as string)?.trim() ?? '';
+  const raw = extractWebinarFields(formData);
+  const slug = ((formData.get('slug') as string) ?? '').trim();
+  const parsed = webinarSchema.safeParse(raw);
+  if (!parsed.success) {
+    return { success: false, error: 'Please fix the errors below.', fieldErrors: formatZodFieldErrors(parsed.error) };
+  }
+  const { title, expert, duration, price, status, scheduledAt, hasReplay, outcomes: outcomesRaw } = parsed.data;
   const outcomes = outcomesRaw
     ? outcomesRaw.split('\n').map((s) => s.trim()).filter(Boolean)
     : [];
 
-  const scheduled_at = scheduledAtRaw ? new Date(scheduledAtRaw).toISOString() : null;
+  const scheduled_at = scheduledAt ? new Date(scheduledAt).toISOString() : null;
   const { error } = await updateWebinarDb(id, {
-    slug,
+    slug: slug || titleToSlug(title),
     title,
-    expert: expert || null,
-    duration: duration || null,
-    price: price || null,
+    expert,
+    duration,
+    price,
     status,
     status_label: null,
     has_replay: hasReplay,
@@ -175,7 +180,9 @@ export async function deleteWebinar(formData: FormData): Promise<void> {
   const id = (formData.get('id') as string)?.trim();
   if (!id) return;
   const { error } = await deleteWebinarDb(id);
-  if (error) throw new Error(error);
+  if (error) {
+    redirect('/admin/webinars?delete_error=1');
+  }
   revalidatePath('/admin/webinars');
   revalidatePath('/');
   revalidatePath('/webinars');

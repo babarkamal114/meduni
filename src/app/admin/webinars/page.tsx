@@ -1,6 +1,8 @@
 import Link from 'next/link';
+import { Video } from 'lucide-react';
 import { getWebinars } from '@/lib/data/webinars';
 import { AdminWebinarRow } from './admin-webinar-row';
+import { EmptyState } from '@/components/dashboard/empty-state';
 
 interface AdminWebinarsPageProps {
   searchParams: Promise<{ created?: string; updated?: string; deleted?: string }>;
@@ -37,24 +39,36 @@ export default async function AdminWebinarsPage({ searchParams }: AdminWebinarsP
           Add Webinar
         </Link>
       </div>
-      <div className="rounded-xl border border-black/[0.06] bg-white overflow-hidden">
-        <table className="w-full text-left">
-          <thead>
-            <tr className="border-b border-black/5 bg-slate-50/80">
-              <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-slate-500">Title</th>
-              <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-slate-500">Expert</th>
-              <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-slate-500">Status</th>
-              <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-slate-500">Price</th>
-              <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-slate-500 w-32">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {webinars.map((w) => (
-              <AdminWebinarRow key={w.id} webinar={w} />
-            ))}
-          </tbody>
-        </table>
+      {webinars.length === 0 ? (
+        <EmptyState
+          icon={Video}
+          title="No webinars yet"
+          description="Create your first webinar to get started."
+          actionLabel="Add Webinar"
+          actionHref="/admin/webinars/new"
+        />
+      ) : (
+      <div className="overflow-x-auto">
+        <div className="rounded-xl border border-black/[0.06] bg-white overflow-hidden">
+          <table className="w-full text-left">
+            <thead>
+              <tr className="border-b border-black/5 bg-slate-50/80">
+                <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-slate-500">Title</th>
+                <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-slate-500">Expert</th>
+                <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-slate-500">Status</th>
+                <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-slate-500">Price</th>
+                <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-slate-500 w-32">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {webinars.map((w) => (
+                <AdminWebinarRow key={w.id} webinar={w} />
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
+      )}
     </div>
   );
 }

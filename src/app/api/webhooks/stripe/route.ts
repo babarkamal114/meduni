@@ -8,6 +8,55 @@ function getStripe(): Stripe | null {
   return new Stripe(key);
 }
 
+async function sendPurchaseEmail(
+  userId: string,
+  webinar: { title: string; expert: string; dateLabel: string; price: string; slug: string },
+  paymentIntentId: string,
+  amountPence: number,
+): Promise<void> {
+  try {
+    const { createAdminClient } = await import('@/lib/supabase/admin');
+    const admin = createAdminClient();
+    const { data: profile } = await (admin as any)
+      .from('profiles')
+      .select('email, full_name')
+      .eq('id', userId)
+      .single() as { data: { email: string; full_name: string | null } | null };
+
+    if (!profile?.email) return;
+
+    const { renderEmail } = await import('@/lib/email/render');
+    const { PurchaseConfirmationEmail } = await import(
+      '@/lib/email/templates/purchase-confirmation'
+    );
+    const { sendEmail } = await import('@/lib/email/resend');
+
+    const html = await renderEmail(
+      PurchaseConfirmationEmail({
+        buyerName: profile.full_name?.trim() || profile.email.split('@')[0] || 'there',
+        webinarTitle: webinar.title,
+        webinarExpert: webinar.expert,
+        webinarDate: webinar.dateLabel,
+        amount: `£${(amountPence / 100).toFixed(2)}`,
+        receiptId: paymentIntentId,
+        webinarUrl: `/dashboard/webinars/${webinar.slug}`,
+      }),
+    );
+
+    const { success, error } = await sendEmail({
+      to: profile.email,
+      subject: `Booking confirmed: ${webinar.title} — MedUni`,
+      html,
+    });
+
+    if (!success) {
+      console.error('[stripe webhook] purchase email failed:', error?.message);
+    }
+  } catch (err) {
+    console.error('[stripe webhook] purchase email error:', err);
+  }
+}
+
 export async function POST(request: NextRequest): Promise<NextResponse> {
   const stripe = getStripe();
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET?.trim();
@@ -47,11 +96,21 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     if (slug && typeof slug === 'string' && userId && typeof userId === 'string') {
       const webinar = await getWebinarBySlug(slug);
       if (webinar) {
-        const { registerUserForWebinarAsAdmin } = await import('@/lib/data/webinars');
-        const { error } = await registerUserForWebinarAsAdmin(userId, webinar.id);
-        if (error) {
-          console.error('[stripe webhook] webinar registration failed', error);
+        const { getWebinarRegistration, registerUserForWebinarAsAdmin } = await import('@/lib/data/webinars');
+        const existing = await getWebinarRegistration(userId, webinar.id);
+        if (!existing) {
+          const { error } = await registerUserForWebinarAsAdmin(userId, webinar.id, paymentIntent.id);
+          if (error) {
+            console.error('[stripe webhook] webinar registration failed', error);
+          }
         }
+
+        await sendPurchaseEmail(
+          userId,
+          webinar,
+          paymentIntent.id,
+          paymentIntent.amount,
+        );
       }
     }
   }

@@ -101,7 +101,7 @@ export async function grantAccessAfterPaymentFromIntent(paymentIntentId: string)
 
   if (userId) {
     const { registerUserForWebinar } = await import('@/lib/data/webinars');
-    const { error } = await registerUserForWebinar(userId, webinar.id);
+    const { error } = await registerUserForWebinar(userId, webinar.id, paymentIntent.id);
     if (error) return { success: false, error };
     return { success: true, slug };
   }
@@ -116,7 +116,7 @@ export async function grantAccessAfterPaymentFromIntent(paymentIntentId: string)
   cookieStore.set(PURCHASED_WEBINARS_COOKIE, [...current, slug].join(','), {
     path: '/',
     maxAge: COOKIE_MAX_AGE,
-    httpOnly: false,
+    httpOnly: true,
     sameSite: 'lax',
   });
   return { success: true, slug };

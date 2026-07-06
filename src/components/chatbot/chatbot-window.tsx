@@ -95,7 +95,7 @@ export function ChatbotWindow({ onClose }: ChatbotWindowProps): React.ReactEleme
     setInput(action);
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       sendMessage();
@@ -151,7 +151,7 @@ export function ChatbotWindow({ onClose }: ChatbotWindowProps): React.ReactEleme
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            onKeyPress={handleKeyPress}
+            onKeyDown={handleKeyDown}
             placeholder="Type your message..."
             disabled={isLoading}
             className="flex-1 bg-slate-50 border-slate-200 rounded-lg px-3 py-2 text-sm focus:border-teal-500/50 focus:ring-teal-500/10"

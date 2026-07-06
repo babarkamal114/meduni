@@ -10,6 +10,8 @@ import {
 } from '@/lib/data/learning';
 import type { ContentType } from '@/lib/data/learning';
 import { createNotification } from '@/lib/data/notifications';
+import { contentItemSchema, formatZodFieldErrors } from '@/lib/validations/admin';
+import type { AdminActionResult } from '@/types/actions';
 
 type QuizQuestionPayload = {
   id: string;
@@ -89,10 +91,22 @@ function parseContentFormData(formData: FormData): {
 export async function createContentItem(
   _prev: unknown,
   formData: FormData
-): Promise<{ success: boolean; error?: string }> {
+): Promise<AdminActionResult> {
   await requireAdmin();
+  const raw = {
+    type: ((formData.get('type') as string) ?? 'pdf').trim(),
+    title: ((formData.get('title') as string) ?? '').trim(),
+    description: ((formData.get('description') as string) ?? '').trim(),
+    meta: ((formData.get('meta') as string) ?? '').trim(),
+    estimatedTime: ((formData.get('estimatedTime') as string) ?? '').trim(),
+    downloadUrl: ((formData.get('downloadUrl') as string) ?? '').trim(),
+    videoUrl: ((formData.get('videoUrl') as string) ?? '').trim(),
+  };
+  const zodResult = contentItemSchema.safeParse(raw);
+  if (!zodResult.success) {
+    return { success: false, error: 'Please fix the errors below.', fieldErrors: formatZodFieldErrors(zodResult.error) };
+  }
   const parsed = parseContentFormData(formData);
-  if (!parsed.title) return { success: false, error: 'Title is required' };
   if (parsed.type === 'quiz' && (!parsed.quiz_questions || parsed.quiz_questions.length === 0)) {
     return { success: false, error: 'At least one question with two options is required.' };
   }
@@ -109,6 +123,18 @@ export async function createContentItem(
       link: `/dashboard/learning/content/${id}`,
       reference_id: id,
     });
+    try {
+      const { sendMarketingEmailToAll } = await import('@/lib/email/send-marketing-email');
+      await sendMarketingEmailToAll({
+        contentType: 'content',
+        contentTitle: parsed.title,
+        contentDescription: parsed.description,
+        ctaUrl: `/dashboard/learning/content/${id}`,
+        ctaLabel: `View ${label.replace('New ', '')}`,
+      });
+    } catch (err) {
+      console.error('[marketing-email] content email failed:', err);
+    }
   }
   revalidatePath('/admin/content');
   revalidatePath('/dashboard/learning');
@@ -118,12 +144,24 @@ export async function createContentItem(
 export async function updateContentItem(
   _prev: unknown,
   formData: FormData
-): Promise<{ success: boolean; error?: string }> {
+): Promise<AdminActionResult> {
   await requireAdmin();
   const id = formData.get('id') as string;
   if (!id) return { success: false, error: 'Missing id' };
+  const raw = {
+    type: ((formData.get('type') as string) ?? 'pdf').trim(),
+    title: ((formData.get('title') as string) ?? '').trim(),
+    description: ((formData.get('description') as string) ?? '').trim(),
+    meta: ((formData.get('meta') as string) ?? '').trim(),
+    estimatedTime: ((formData.get('estimatedTime') as string) ?? '').trim(),
+    downloadUrl: ((formData.get('downloadUrl') as string) ?? '').trim(),
+    videoUrl: ((formData.get('videoUrl') as string) ?? '').trim(),
+  };
+  const zodResult = contentItemSchema.safeParse(raw);
+  if (!zodResult.success) {
+    return { success: false, error: 'Please fix the errors below.', fieldErrors: formatZodFieldErrors(zodResult.error) };
+  }
   const parsed = parseContentFormData(formData);
-  if (!parsed.title) return { success: false, error: 'Title is required' };
   if (parsed.type === 'quiz' && (!parsed.quiz_questions || parsed.quiz_questions.length === 0)) {
     return { success: false, error: 'At least one question with two options is required.' };
   }

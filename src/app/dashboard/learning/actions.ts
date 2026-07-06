@@ -36,15 +36,34 @@ export async function markLessonCompleteAndRevalidate(lessonId: string, moduleSl
   return result;
 }
 
-export async function submitQuizAttempt(lessonId: string, scorePercent: number): Promise<{ error: string | null; passed: boolean }> {
+export async function submitQuizAttempt(
+  lessonId: string,
+  scorePercent: number,
+  answers?: Record<string, string>
+): Promise<{ error: string | null; passed: boolean }> {
   const user = await requireUser();
   const lessonData = await getLessonById(lessonId, user.id);
   if (!lessonData) return { error: 'Lesson not found', passed: false };
+
+  let validatedScore = scorePercent;
+  const questions = lessonData.lesson.questions;
+  if (answers && questions && questions.length > 0) {
+    let correct = 0;
+    for (const q of questions) {
+      const selectedOptionId = answers[q.id];
+      const correctOption = q.options.find((o) => o.correct);
+      if (correctOption && selectedOptionId === correctOption.id) {
+        correct++;
+      }
+    }
+    validatedScore = Math.round((correct / questions.length) * 100);
+  }
+
   const moduleId = lessonData.module.id;
   const threshold = await getModulePassThreshold(moduleId);
-  const passed = scorePercent >= threshold;
+  const passed = validatedScore >= threshold;
 
-  const recordResult = await recordQuizAttempt(user.id, lessonId, scorePercent, threshold);
+  const recordResult = await recordQuizAttempt(user.id, lessonId, validatedScore, threshold);
   if (recordResult.error) return { error: typeof recordResult.error === 'string' ? recordResult.error : String(recordResult.error), passed: false };
 
   if (passed) {

@@ -12,7 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { LogOut, User, Settings, Menu, Search } from 'lucide-react';
+import { LogOut, User, Settings, Menu } from 'lucide-react';
 import { NotificationBell } from '@/components/dashboard/notification-bell';
 
 interface DashboardTopbarProps {
@@ -50,14 +50,6 @@ export function DashboardTopbar({ user, onMenuClick }: DashboardTopbarProps): Re
           >
             <Menu className="h-5 w-5 text-slate-600" strokeWidth={2} />
           </button>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-600" strokeWidth={2} />
-            <input
-              type="text"
-              placeholder="Search webinars, courses..."
-              className="h-10 w-full max-w-[320px] rounded-xl border border-transparent bg-slate-100 py-2.5 pl-10 pr-4 text-sm text-slate-800 outline-none transition-all placeholder:text-slate-500 focus:border-teal-500/30 focus:bg-white focus:shadow-[0_0_0_3px_rgba(13,148,136,0.08)]"
-            />
-          </div>
         </div>
         <div className="flex items-center gap-3">
           <NotificationBell userId={user?.id ?? null} />

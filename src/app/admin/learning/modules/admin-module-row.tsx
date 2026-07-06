@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 import { Button } from '@/components/ui/button';
 import { deleteModule } from '../actions';
 import {
@@ -20,6 +20,7 @@ interface AdminModuleRowProps {
 
 export function AdminModuleRow({ module }: AdminModuleRowProps): React.ReactElement {
   const [open, setOpen] = useState(false);
+  const [deleting, startDelete] = useTransition();
 
   return (
     <tr className="border-b border-black/5 hover:bg-slate-50/50">
@@ -47,13 +48,21 @@ export function AdminModuleRow({ module }: AdminModuleRowProps): React.ReactElem
                   Delete &quot;{module.title}&quot; permanently. This cannot be undone.
                 </DialogDescription>
               </DialogHeader>
-              <form action={deleteModule.bind(null, module.id)} onSubmit={() => setOpen(false)}>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  startDelete(async () => {
+                    await deleteModule(module.id);
+                    setOpen(false);
+                  });
+                }}
+              >
                 <DialogFooter>
-                  <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+                  <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={deleting}>
                     Cancel
                   </Button>
-                  <Button type="submit" className="bg-red-600 text-white hover:bg-red-700">
-                    Delete
+                  <Button type="submit" className="bg-red-600 text-white hover:bg-red-700" disabled={deleting}>
+                    {deleting ? 'Deleting...' : 'Delete'}
                   </Button>
                 </DialogFooter>
               </form>

@@ -56,6 +56,7 @@ export default async function AdminLessonsPage({ params, searchParams }: Lessons
           </Link>
         </div>
       </div>
+      <div className="overflow-x-auto">
       <div className="rounded-xl border border-black/[0.06] bg-white overflow-hidden">
         <table className="w-full text-left">
           <thead>
@@ -81,6 +82,7 @@ export default async function AdminLessonsPage({ params, searchParams }: Lessons
             )}
           </tbody>
         </table>
+      </div>
       </div>
     </div>
   );

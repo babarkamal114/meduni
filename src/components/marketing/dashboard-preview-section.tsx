@@ -65,7 +65,7 @@ export function DashboardPreviewSection(): React.ReactElement {
                 <div className="w-3 h-3 rounded-full bg-green-300" />
                 <div className="flex-1 h-7 rounded-lg bg-slate-50 ml-4 flex items-center px-3">
                   <span className="text-xs text-slate-600 font-mono">
-                    meduni.co.uk/learning
+                    meduni.co.uk/dashboard
                   </span>
                 </div>
               </div>
@@ -116,7 +116,7 @@ export function DashboardPreviewSection(): React.ReactElement {
                         Sudden Death Due to Cardiac Causes
                       </div>
                       <div className="text-xs text-slate-600">
-                        Sat, 2nd May 2026 - 18:00 GMT
+                        Next session — see dashboard for details
                       </div>
                     </div>
                     <div className="px-3 py-1 rounded-full bg-teal-500/10 text-teal-600 text-xs font-medium mt-1 sm:mt-0">

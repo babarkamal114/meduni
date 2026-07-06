@@ -61,7 +61,20 @@ export function Footer(): React.ReactElement {
           <p className="text-xs text-slate-500">
             © {currentYear} {siteConfig.name}. All rights reserved.
           </p>
-          <p className="text-xs text-slate-500">Built by DevBeam</p>
+          <div className="flex items-center gap-4">
+            <Link
+              href="/contact"
+              className="text-xs text-slate-500 hover:text-teal-600 transition-colors"
+            >
+              Privacy Policy
+            </Link>
+            <Link
+              href="/contact"
+              className="text-xs text-slate-500 hover:text-teal-600 transition-colors"
+            >
+              Terms of Service
+            </Link>
+          </div>
         </div>
       </div>
     </footer>

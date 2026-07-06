@@ -51,8 +51,8 @@ export function QuickActions({ onSelect }: QuickActionsProps): React.ReactElemen
               onClick={() => onSelect(action.message)}
               className={cn(
                 'justify-start text-left h-auto py-2 px-3',
-                'border-gray-200 hover:border-green-600 hover:bg-green-50',
-                'text-gray-700 hover:text-green-700'
+                'border-gray-200 hover:border-teal-600 hover:bg-teal-50',
+                'text-gray-700 hover:text-teal-700'
               )}
             >
               <Icon className="h-4 w-4 mr-2 flex-shrink-0" />

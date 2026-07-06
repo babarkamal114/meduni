@@ -18,6 +18,8 @@ import {
 } from '@/lib/data/learning';
 import { createNotification } from '@/lib/data/notifications';
 import { titleToSlug } from '@/lib/utils/slug';
+import { moduleSchema, lessonSchema, caseStudySchema, formatZodFieldErrors } from '@/lib/validations/admin';
+import type { AdminActionResult } from '@/types/actions';
 
 function parseLessonQuizFormData(formData: FormData): Json | null {
   const countRaw = formData.get('quiz_question_count');
@@ -49,14 +51,20 @@ function parseLessonQuizFormData(formData: FormData): Json | null {
   return questions as Json;
 }
 
-export async function createModule(_prev: unknown, formData: FormData): Promise<{ success: boolean; error?: string }> {
+export async function createModule(_prev: unknown, formData: FormData): Promise<AdminActionResult> {
   await requireAdmin();
-  const title = (formData.get('title') as string)?.trim() ?? '';
+  const raw = {
+    title: ((formData.get('title') as string) ?? '').trim(),
+    description: ((formData.get('description') as string) ?? '').trim(),
+    pass_threshold_percent: formData.get('pass_threshold_percent') ? parseInt(String(formData.get('pass_threshold_percent')), 10) : 80,
+  };
+  const parsed = moduleSchema.safeParse(raw);
+  if (!parsed.success) {
+    return { success: false, error: 'Please fix the errors below.', fieldErrors: formatZodFieldErrors(parsed.error) };
+  }
+  const { title, description, pass_threshold_percent } = parsed.data;
   const slug = titleToSlug(title);
-  const description = (formData.get('description') as string)?.trim() ?? '';
-  const passThresholdRaw = formData.get('pass_threshold_percent');
-  const pass_threshold_percent = passThresholdRaw ? Math.min(100, Math.max(1, parseInt(String(passThresholdRaw), 10) || 80)) : 80;
-  if (!title || !slug) return { success: false, error: 'Title and slug are required' };
+  if (!slug) return { success: false, error: 'Title must contain at least one letter or number.' };
   const { id, error } = await createModuleDb({ slug, title, description: description || undefined, pass_threshold_percent });
   if (error) return { success: false, error };
   await createNotification({
@@ -65,21 +73,42 @@ export async function createModule(_prev: unknown, formData: FormData): Promise<
     link: `/dashboard/learning/module/${slug}`,
     reference_id: id,
   });
+  try {
+    const { sendMarketingEmailToAll } = await import('@/lib/email/send-marketing-email');
+    await sendMarketingEmailToAll({
+      contentType: 'module',
+      contentTitle: title,
+      contentDescription: description || undefined,
+      ctaUrl: `/dashboard/learning/module/${slug}`,
+      ctaLabel: 'Start Learning',
+    });
+  } catch (err) {
+    console.error('[marketing-email] module email failed:', err);
+  }
   redirect(`/admin/learning/modules/${id}/lessons?module_created=1`);
 }
 
-export async function updateModule(_prev: unknown, formData: FormData): Promise<{ success: boolean; error?: string }> {
+export async function updateModule(_prev: unknown, formData: FormData): Promise<AdminActionResult> {
   await requireAdmin();
   const id = formData.get('id') as string;
-  const title = (formData.get('title') as string)?.trim() ?? '';
-  const slug = (formData.get('slug') as string)?.trim()?.toLowerCase().replace(/\s+/g, '-') ?? '';
-  const description = (formData.get('description') as string)?.trim() ?? '';
-  const passThresholdRaw = formData.get('pass_threshold_percent');
-  const pass_threshold_percent = passThresholdRaw ? Math.min(100, Math.max(1, parseInt(String(passThresholdRaw), 10) || 80)) : undefined;
   if (!id) return { success: false, error: 'Missing id' };
-  if (!title || !slug) return { success: false, error: 'Title and slug are required' };
-  const updatePayload: { slug: string; title: string; description?: string; pass_threshold_percent?: number } = { slug, title, description: description || undefined };
-  if (pass_threshold_percent !== undefined) updatePayload.pass_threshold_percent = pass_threshold_percent;
+  const raw = {
+    title: ((formData.get('title') as string) ?? '').trim(),
+    description: ((formData.get('description') as string) ?? '').trim(),
+    pass_threshold_percent: formData.get('pass_threshold_percent') ? parseInt(String(formData.get('pass_threshold_percent')), 10) : 80,
+  };
+  const parsed = moduleSchema.safeParse(raw);
+  if (!parsed.success) {
+    return { success: false, error: 'Please fix the errors below.', fieldErrors: formatZodFieldErrors(parsed.error) };
+  }
+  const { title, description, pass_threshold_percent } = parsed.data;
+  const slug = ((formData.get('slug') as string) ?? '').trim().toLowerCase().replace(/\s+/g, '-') || titleToSlug(title);
+  const updatePayload: { slug: string; title: string; description?: string; pass_threshold_percent?: number } = {
+    slug,
+    title,
+    description: description || undefined,
+    pass_threshold_percent,
+  };
   const { error } = await updateModuleDb(id, updatePayload);
   if (error) return { success: false, error };
   redirect('/admin/learning/modules?updated=1');
@@ -88,19 +117,28 @@ export async function updateModule(_prev: unknown, formData: FormData): Promise<
 export async function createLesson(
   _prev: unknown,
   formData: FormData
-): Promise<{ success: boolean; error?: string }> {
+): Promise<AdminActionResult> {
   await requireAdmin();
   const moduleId = formData.get('moduleId') as string;
-  const title = (formData.get('title') as string)?.trim() ?? '';
-  const stepType = (formData.get('stepType') as string) === 'quiz' ? 'quiz' : 'content';
   if (!moduleId) return { success: false, error: 'Missing moduleId' };
-  if (!title) return { success: false, error: 'Title is required' };
-  const duration = (formData.get('duration') as string)?.trim() ?? '';
-  const body = (formData.get('body') as string)?.trim() ?? '';
-  const hasVideo = formData.get('hasVideo') === 'on' || formData.get('hasVideo') === 'true';
-  const videoUrl = (formData.get('videoUrl') as string)?.trim() ?? '';
-  const videoDuration = (formData.get('videoDuration') as string)?.trim() ?? '';
+  const raw = {
+    title: ((formData.get('title') as string) ?? '').trim(),
+    stepType: (formData.get('stepType') as string) === 'quiz' ? 'quiz' as const : 'content' as const,
+    duration: ((formData.get('duration') as string) ?? '').trim(),
+    body: ((formData.get('body') as string) ?? '').trim(),
+    hasVideo: formData.get('hasVideo') === 'on' || formData.get('hasVideo') === 'true',
+    videoUrl: ((formData.get('videoUrl') as string) ?? '').trim(),
+    videoDuration: ((formData.get('videoDuration') as string) ?? '').trim(),
+  };
+  const parsed = lessonSchema.safeParse(raw);
+  if (!parsed.success) {
+    return { success: false, error: 'Please fix the errors below.', fieldErrors: formatZodFieldErrors(parsed.error) };
+  }
+  const { title, stepType, duration, body, hasVideo, videoUrl, videoDuration } = parsed.data;
   const quiz_questions = stepType === 'quiz' ? parseLessonQuizFormData(formData) : undefined;
+  if (stepType === 'quiz' && !quiz_questions) {
+    return { success: false, error: 'At least one question with two options and a correct answer is required.' };
+  }
   const { error } = await createLessonDb({
     module_id: moduleId,
     title,
@@ -121,6 +159,17 @@ export async function createLesson(
       link: `/dashboard/learning/module/${moduleData.slug}`,
       reference_id: moduleId,
     });
+    try {
+      const { sendMarketingEmailToAll } = await import('@/lib/email/send-marketing-email');
+      await sendMarketingEmailToAll({
+        contentType: 'lesson',
+        contentTitle: title,
+        ctaUrl: `/dashboard/learning/module/${moduleData.slug}`,
+        ctaLabel: stepType === 'quiz' ? 'Take the Quiz' : 'View Lesson',
+      });
+    } catch (err) {
+      console.error('[marketing-email] lesson email failed:', err);
+    }
   }
   redirect(`/admin/learning/modules/${moduleId}/lessons?created=1`);
 }
@@ -128,20 +177,29 @@ export async function createLesson(
 export async function updateLesson(
   _prev: unknown,
   formData: FormData
-): Promise<{ success: boolean; error?: string }> {
+): Promise<AdminActionResult> {
   await requireAdmin();
   const moduleId = formData.get('moduleId') as string;
   const lessonId = formData.get('lessonId') as string;
-  const title = (formData.get('title') as string)?.trim() ?? '';
-  const stepType = (formData.get('stepType') as string) === 'quiz' ? 'quiz' : 'content';
   if (!moduleId || !lessonId) return { success: false, error: 'Missing moduleId or lessonId' };
-  if (!title) return { success: false, error: 'Title is required' };
-  const duration = (formData.get('duration') as string)?.trim() ?? '';
-  const body = (formData.get('body') as string)?.trim() ?? '';
-  const hasVideo = formData.get('hasVideo') === 'on' || formData.get('hasVideo') === 'true';
-  const videoUrl = (formData.get('videoUrl') as string)?.trim() ?? '';
-  const videoDuration = (formData.get('videoDuration') as string)?.trim() ?? '';
+  const raw = {
+    title: ((formData.get('title') as string) ?? '').trim(),
+    stepType: (formData.get('stepType') as string) === 'quiz' ? 'quiz' as const : 'content' as const,
+    duration: ((formData.get('duration') as string) ?? '').trim(),
+    body: ((formData.get('body') as string) ?? '').trim(),
+    hasVideo: formData.get('hasVideo') === 'on' || formData.get('hasVideo') === 'true',
+    videoUrl: ((formData.get('videoUrl') as string) ?? '').trim(),
+    videoDuration: ((formData.get('videoDuration') as string) ?? '').trim(),
+  };
+  const parsed = lessonSchema.safeParse(raw);
+  if (!parsed.success) {
+    return { success: false, error: 'Please fix the errors below.', fieldErrors: formatZodFieldErrors(parsed.error) };
+  }
+  const { title, stepType, duration, body, hasVideo, videoUrl, videoDuration } = parsed.data;
   const quiz_questions = stepType === 'quiz' ? parseLessonQuizFormData(formData) : undefined;
+  if (stepType === 'quiz' && !quiz_questions) {
+    return { success: false, error: 'At least one question with two options and a correct answer is required.' };
+  }
   const payload: {
     title: string;
     duration?: string;
@@ -170,14 +228,20 @@ export async function updateLesson(
 export async function createCaseStudy(
   _prev: unknown,
   formData: FormData
-): Promise<{ success: boolean; error?: string }> {
+): Promise<AdminActionResult> {
   await requireAdmin();
-  const slug = (formData.get('slug') as string)?.trim()?.toLowerCase().replace(/\s+/g, '-') ?? '';
-  const title = (formData.get('title') as string)?.trim() ?? '';
-  const description = (formData.get('description') as string)?.trim() ?? '';
-  const outcomeTitle = (formData.get('outcome_title') as string)?.trim() ?? '';
-  const outcomeBody = (formData.get('outcome_body') as string)?.trim() ?? '';
-  if (!slug || !title) return { success: false, error: 'Slug and title are required' };
+  const raw = {
+    slug: ((formData.get('slug') as string) ?? '').trim().toLowerCase().replace(/\s+/g, '-'),
+    title: ((formData.get('title') as string) ?? '').trim(),
+    description: ((formData.get('description') as string) ?? '').trim(),
+    outcome_title: ((formData.get('outcome_title') as string) ?? '').trim(),
+    outcome_body: ((formData.get('outcome_body') as string) ?? '').trim(),
+  };
+  const parsed = caseStudySchema.safeParse(raw);
+  if (!parsed.success) {
+    return { success: false, error: 'Please fix the errors below.', fieldErrors: formatZodFieldErrors(parsed.error) };
+  }
+  const { slug, title, description, outcome_title, outcome_body } = parsed.data;
   const stepsJson = formData.get('steps') as string | null;
   let steps: { step_key: string; title: string; narrative?: string; choices: { label: string; next_step_key: string; correct?: boolean }[] }[] = [];
   if (stepsJson) {
@@ -191,8 +255,8 @@ export async function createCaseStudy(
     slug,
     title,
     description: description || undefined,
-    outcome_title: outcomeTitle || undefined,
-    outcome_body: outcomeBody || undefined,
+    outcome_title: outcome_title || undefined,
+    outcome_body: outcome_body || undefined,
     steps: steps.length ? steps : undefined,
   });
   if (error) return { success: false, error };
@@ -203,6 +267,18 @@ export async function createCaseStudy(
       link: `/dashboard/learning/case-study/${id}`,
       reference_id: id,
     });
+    try {
+      const { sendMarketingEmailToAll } = await import('@/lib/email/send-marketing-email');
+      await sendMarketingEmailToAll({
+        contentType: 'case study',
+        contentTitle: title,
+        contentDescription: description || undefined,
+        ctaUrl: `/dashboard/learning/case-study/${id}`,
+        ctaLabel: 'Explore Case Study',
+      });
+    } catch (err) {
+      console.error('[marketing-email] case study email failed:', err);
+    }
   }
   redirect('/admin/learning/case-studies?created=1');
 }
@@ -210,16 +286,22 @@ export async function createCaseStudy(
 export async function updateCaseStudy(
   _prev: unknown,
   formData: FormData
-): Promise<{ success: boolean; error?: string }> {
+): Promise<AdminActionResult> {
   await requireAdmin();
   const id = formData.get('id') as string;
-  const slug = (formData.get('slug') as string)?.trim()?.toLowerCase().replace(/\s+/g, '-') ?? '';
-  const title = (formData.get('title') as string)?.trim() ?? '';
-  const description = (formData.get('description') as string)?.trim() ?? '';
-  const outcomeTitle = (formData.get('outcome_title') as string)?.trim() ?? '';
-  const outcomeBody = (formData.get('outcome_body') as string)?.trim() ?? '';
   if (!id) return { success: false, error: 'Missing id' };
-  if (!slug || !title) return { success: false, error: 'Slug and title are required' };
+  const raw = {
+    slug: ((formData.get('slug') as string) ?? '').trim().toLowerCase().replace(/\s+/g, '-'),
+    title: ((formData.get('title') as string) ?? '').trim(),
+    description: ((formData.get('description') as string) ?? '').trim(),
+    outcome_title: ((formData.get('outcome_title') as string) ?? '').trim(),
+    outcome_body: ((formData.get('outcome_body') as string) ?? '').trim(),
+  };
+  const parsed = caseStudySchema.safeParse(raw);
+  if (!parsed.success) {
+    return { success: false, error: 'Please fix the errors below.', fieldErrors: formatZodFieldErrors(parsed.error) };
+  }
+  const { slug, title, description, outcome_title, outcome_body } = parsed.data;
   const stepsJson = formData.get('steps') as string | null;
   let steps: { step_key: string; title: string; narrative?: string; choices: { label: string; next_step_key: string; correct?: boolean }[] }[] = [];
   if (stepsJson) {
@@ -233,8 +315,8 @@ export async function updateCaseStudy(
     slug,
     title,
     description: description || undefined,
-    outcome_title: outcomeTitle || undefined,
-    outcome_body: outcomeBody || undefined,
+    outcome_title: outcome_title || undefined,
+    outcome_body: outcome_body || undefined,
     steps: steps.length ? steps : undefined,
   });
   if (error) return { success: false, error };

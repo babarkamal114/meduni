@@ -54,7 +54,6 @@ export function WebinarDetailContent({ webinar, hasAccess }: WebinarDetailConten
   const showBuyTicket = isLiveOrUpcoming && !hasAccess;
   const showJoinWebinar = isLiveOrUpcoming && hasAccess;
   const showWatchReplay = webinar.status === 'recorded' && hasAccess && webinar.hasReplay;
-  const showStartsIn = isLiveOrUpcoming && hasAccess && !joinError;
   const hasOutcomes = webinar.outcomes && webinar.outcomes.length > 0;
 
   return (
@@ -170,11 +169,6 @@ export function WebinarDetailContent({ webinar, hasAccess }: WebinarDetailConten
                   )}
                 </div>
               </div>
-              {showStartsIn && !showJoinWebinar && (
-                <p className="text-sm text-slate-500">
-                  Join link available 15 minutes before start time.
-                </p>
-              )}
             </div>
           </div>
         </div>

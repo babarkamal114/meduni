@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { isStripeConfigured } from '@/lib/stripe/server';
 import { purchaseWebinarTicket } from '@/app/dashboard/webinars/actions';
 
 export async function POST(
@@ -9,6 +10,14 @@ export async function POST(
   if (!slug) {
     return NextResponse.json({ success: false, error: 'Slug required' }, { status: 400 });
   }
+
+  if (isStripeConfigured()) {
+    return NextResponse.json(
+      { success: false, error: 'Please complete payment through the checkout form.' },
+      { status: 403 }
+    );
+  }
+
   try {
     const result = await purchaseWebinarTicket(slug);
     if (result.success) {

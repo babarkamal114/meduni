@@ -306,11 +306,17 @@ export async function deleteWebinar(id: string): Promise<{ error: string | null 
   return { error: error?.message ?? null };
 }
 
-export async function registerUserForWebinar(userId: string, webinarId: string): Promise<{ error: string | null }> {
+export async function registerUserForWebinar(
+  userId: string,
+  webinarId: string,
+  stripePaymentIntentId?: string | null,
+): Promise<{ error: string | null }> {
   const supabase = await createServerClient();
+  const row: Record<string, string> = { user_id: userId, webinar_id: webinarId };
+  if (stripePaymentIntentId) row.stripe_payment_intent_id = stripePaymentIntentId;
   const { error } = await supabase
     .from('webinar_registrations')
-    .insert({ user_id: userId, webinar_id: webinarId } as never);
+    .insert(row as never);
   if (error?.code === '23505') return { error: null };
   return { error: error?.message ?? null };
 }
@@ -318,12 +324,15 @@ export async function registerUserForWebinar(userId: string, webinarId: string):
 /** Service-role insert for trusted server contexts (e.g. Stripe webhook) where there is no user session. */
 export async function registerUserForWebinarAsAdmin(
   userId: string,
-  webinarId: string
+  webinarId: string,
+  stripePaymentIntentId?: string | null,
 ): Promise<{ error: string | null }> {
   const supabase = createAdminClient();
+  const row: Record<string, string> = { user_id: userId, webinar_id: webinarId };
+  if (stripePaymentIntentId) row.stripe_payment_intent_id = stripePaymentIntentId;
   const { error } = await supabase
     .from('webinar_registrations')
-    .insert({ user_id: userId, webinar_id: webinarId } as never);
+    .insert(row as never);
   if (error?.code === '23505') return { error: null };
   return { error: error?.message ?? null };
 }

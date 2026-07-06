@@ -49,10 +49,26 @@ export function WebinarForm({ action, initialValues }: WebinarFormProps): React.
   ];
 
   const [error, setError] = useState<string | null>(null);
-  const [fieldErrors, setFieldErrors] = useState<Partial<Record<string, string>> | undefined>(undefined);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string[]> | undefined>(undefined);
   const [isPending, setIsPending] = useState(false);
+  const [stepError, setStepError] = useState<string | null>(null);
 
-  const hasError = (key: string) => !!(fieldErrors && fieldErrors[key]);
+  const hasError = (key: string) => !!(fieldErrors && fieldErrors[key]?.length);
+  const getError = (key: string) => fieldErrors?.[key]?.[0] ?? '';
+
+  const validateStep = (): boolean => {
+    if (step === 0) {
+      if (!title.trim()) { setStepError('Title is required.'); return false; }
+      if (!expert.trim()) { setStepError('Expert is required.'); return false; }
+    }
+    if (step === 1) {
+      if (!duration.trim()) { setStepError('Duration is required.'); return false; }
+      if (!price.trim()) { setStepError('Price is required.'); return false; }
+      if (!scheduledAt) { setStepError('Scheduled date is required.'); return false; }
+    }
+    setStepError(null);
+    return true;
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -108,7 +124,7 @@ export function WebinarForm({ action, initialValues }: WebinarFormProps): React.
           aria-describedby={hasError('title') ? 'title-error' : undefined}
         />
         {hasError('title') && (
-          <FormMessage id="title-error" message={fieldErrors!.title!} type="error" className="mt-1 text-red-600" />
+          <FormMessage id="title-error" message={getError('title')} type="error" className="mt-1 text-red-600" />
         )}
       </div>}
       {(step === 0 || step === 3) && <div className="space-y-2">
@@ -128,7 +144,7 @@ export function WebinarForm({ action, initialValues }: WebinarFormProps): React.
               aria-describedby={hasError('slug') ? 'slug-error' : undefined}
             />
             {hasError('slug') && (
-              <FormMessage id="slug-error" message={fieldErrors!.slug!} type="error" className="mt-1 text-red-600" />
+              <FormMessage id="slug-error" message={getError('slug')} type="error" className="mt-1 text-red-600" />
             )}
           </>
         ) : (
@@ -164,7 +180,7 @@ export function WebinarForm({ action, initialValues }: WebinarFormProps): React.
           aria-describedby={hasError('expert') ? 'expert-error' : undefined}
         />
         {hasError('expert') && (
-          <FormMessage id="expert-error" message={fieldErrors!.expert!} type="error" className="mt-1 text-red-600" />
+          <FormMessage id="expert-error" message={getError('expert')} type="error" className="mt-1 text-red-600" />
         )}
       </div>}
       {(step === 1 || step === 3) && <div className="grid grid-cols-2 gap-4">
@@ -183,7 +199,7 @@ export function WebinarForm({ action, initialValues }: WebinarFormProps): React.
             aria-describedby={hasError('duration') ? 'duration-error' : undefined}
           />
           {hasError('duration') && (
-            <FormMessage id="duration-error" message={fieldErrors!.duration!} type="error" className="mt-1 text-red-600" />
+            <FormMessage id="duration-error" message={getError('duration')} type="error" className="mt-1 text-red-600" />
           )}
         </div>
         <div className="space-y-2">
@@ -194,14 +210,14 @@ export function WebinarForm({ action, initialValues }: WebinarFormProps): React.
             required
             value={price}
             onChange={(e) => setPrice(e.target.value)}
-            placeholder="£29.99"
+            placeholder="£3.00"
             className="w-full"
             error={hasError('price')}
             aria-invalid={hasError('price')}
             aria-describedby={hasError('price') ? 'price-error' : undefined}
           />
           {hasError('price') && (
-            <FormMessage id="price-error" message={fieldErrors!.price!} type="error" className="mt-1 text-red-600" />
+            <FormMessage id="price-error" message={getError('price')} type="error" className="mt-1 text-red-600" />
           )}
         </div>
       </div>}
@@ -227,7 +243,7 @@ export function WebinarForm({ action, initialValues }: WebinarFormProps): React.
           ))}
         </select>
         {hasError('status') && (
-          <FormMessage id="status-error" message={fieldErrors!.status!} type="error" className="mt-1 text-red-600" />
+          <FormMessage id="status-error" message={getError('status')} type="error" className="mt-1 text-red-600" />
         )}
       </div>}
       {(step === 2 || step === 3) && <div className="space-y-2">
@@ -248,7 +264,7 @@ export function WebinarForm({ action, initialValues }: WebinarFormProps): React.
           One outcome per line. Stored as an array.
         </p>
         {hasError('outcomes') && (
-          <FormMessage id="outcomes-error" message={fieldErrors!.outcomes!} type="error" className="mt-1 text-red-600" />
+          <FormMessage id="outcomes-error" message={getError('outcomes')} type="error" className="mt-1 text-red-600" />
         )}
       </div>}
       {(step === 1 || step === 3) && <div className="space-y-2">
@@ -266,7 +282,7 @@ export function WebinarForm({ action, initialValues }: WebinarFormProps): React.
           aria-describedby={hasError('scheduledAt') ? 'scheduledAt-error' : undefined}
         />
         {hasError('scheduledAt') && (
-          <FormMessage id="scheduledAt-error" message={fieldErrors!.scheduledAt!} type="error" className="mt-1 text-red-600" />
+          <FormMessage id="scheduledAt-error" message={getError('scheduledAt')} type="error" className="mt-1 text-red-600" />
         )}
       </div>}
       {(step === 2 || step === 3) && <div className="flex items-center gap-2">
@@ -285,11 +301,15 @@ export function WebinarForm({ action, initialValues }: WebinarFormProps): React.
           Review the webinar details above, then save.
         </div>
       ) : null}
+      {stepError ? (
+        <p className="mb-4 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-700" role="alert">{stepError}</p>
+      ) : null}
       <AdminWizardActions
         currentStep={step}
         totalSteps={steps.length}
-        onBack={() => setStep((prev) => Math.max(0, prev - 1))}
+        onBack={() => { setStepError(null); setStep((prev) => Math.max(0, prev - 1)); }}
         onNext={() => setStep((prev) => Math.min(steps.length - 1, prev + 1))}
+        onBeforeNext={validateStep}
         isSubmitting={isPending}
       />
     </AdminWizardShell>

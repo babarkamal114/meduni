@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 import Link from 'next/link';
 import type { Webinar } from '@/lib/data/webinars';
 import { deleteWebinar } from './actions';
@@ -21,6 +21,7 @@ interface AdminWebinarRowProps {
 
 export function AdminWebinarRow({ webinar }: AdminWebinarRowProps): React.ReactElement {
   const [open, setOpen] = useState(false);
+  const [deleting, startDelete] = useTransition();
 
   return (
     <tr className="border-b border-black/5 hover:bg-slate-50/50">
@@ -56,9 +57,13 @@ export function AdminWebinarRow({ webinar }: AdminWebinarRowProps): React.ReactE
                 </DialogDescription>
               </DialogHeader>
               <form
-                action={deleteWebinar}
-                method="post"
-                onSubmit={() => setOpen(false)}
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  startDelete(async () => {
+                    await deleteWebinar(new FormData(e.currentTarget));
+                    setOpen(false);
+                  });
+                }}
               >
                 <input type="hidden" name="id" value={webinar.id} />
                 <DialogFooter className="gap-2 sm:gap-0">
@@ -66,14 +71,16 @@ export function AdminWebinarRow({ webinar }: AdminWebinarRowProps): React.ReactE
                     type="button"
                     variant="outline"
                     onClick={() => setOpen(false)}
+                    disabled={deleting}
                   >
                     Cancel
                   </Button>
                   <Button
                     type="submit"
                     className="bg-red-600 text-white hover:bg-red-700"
+                    disabled={deleting}
                   >
-                    Delete
+                    {deleting ? 'Deleting...' : 'Delete'}
                   </Button>
                 </DialogFooter>
               </form>

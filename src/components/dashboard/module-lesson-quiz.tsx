@@ -54,7 +54,7 @@ export function ModuleLessonQuiz({
       ).length;
       const percent = total > 0 ? Math.round((score / total) * 100) : 0;
       setSubmitting(true);
-      submitQuizAttempt(lessonId, percent).then((res) => {
+      submitQuizAttempt(lessonId, percent, answers).then((res) => {
         setSubmitting(false);
         const errStr =
           res.error == null ? undefined : typeof res.error === 'string' ? res.error : (res.error as { message?: string })?.message ?? String(res.error);

@@ -8,7 +8,7 @@ const CARDS = [
     title: 'Expert-led',
     tag: 'SPECIALISTS & CONSULTANTS',
     description:
-      'Learn from practising specialists and consultants. Evidence-based content designed for busy healthcare professionals.',
+      'Learn from practising specialists and consultants. Evidence-based content designed for medical students and healthcare professionals.',
   },
   {
     icon: CalendarCheck,

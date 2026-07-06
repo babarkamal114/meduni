@@ -14,7 +14,7 @@ export default function AdminWebinarNewPage(): React.ReactElement {
         Back to Webinars
       </Link>
       <h1 className="font-serif text-3xl text-slate-900 mb-1">Add Webinar</h1>
-      <p className="text-slate-600 text-sm mb-8">Create a new webinar. Persistence will be enabled with Supabase.</p>
+      <p className="text-slate-600 text-sm mb-8">Create a new webinar listing.</p>
       <WebinarForm action={createWebinar} />
     </div>
   );

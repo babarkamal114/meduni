@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 import { Button } from '@/components/ui/button';
 import { deleteLesson } from '@/app/admin/learning/actions';
 import {
@@ -27,6 +27,7 @@ interface AdminLessonRowProps {
 
 export function AdminLessonRow({ moduleId, lesson }: AdminLessonRowProps): React.ReactElement {
   const [open, setOpen] = useState(false);
+  const [deleting, startDelete] = useTransition();
 
   return (
     <tr className="border-b border-black/5 hover:bg-slate-50/50">
@@ -56,13 +57,21 @@ export function AdminLessonRow({ moduleId, lesson }: AdminLessonRowProps): React
                   Delete &quot;{lesson.title}&quot; permanently. This cannot be undone.
                 </DialogDescription>
               </DialogHeader>
-              <form action={deleteLesson.bind(null, moduleId, lesson.id)} onSubmit={() => setOpen(false)}>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  startDelete(async () => {
+                    await deleteLesson(moduleId, lesson.id);
+                    setOpen(false);
+                  });
+                }}
+              >
                 <DialogFooter>
-                  <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+                  <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={deleting}>
                     Cancel
                   </Button>
-                  <Button type="submit" className="bg-red-600 text-white hover:bg-red-700">
-                    Delete
+                  <Button type="submit" className="bg-red-600 text-white hover:bg-red-700" disabled={deleting}>
+                    {deleting ? 'Deleting...' : 'Delete'}
                   </Button>
                 </DialogFooter>
               </form>

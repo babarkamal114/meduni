@@ -24,6 +24,12 @@ export function LessonForm({ moduleId, action, initialValues, defaultStepType }:
   const stepType = initialValues?.lessonType ?? defaultStepType ?? 'content';
   const [type, setType] = useState<'content' | 'quiz'>(stepType);
   const [step, setStep] = useState(0);
+  const [title, setTitle] = useState(initialValues?.title ?? '');
+  const [duration, setDuration] = useState(initialValues?.duration ?? '');
+  const [body, setBody] = useState(initialValues?.body ?? '');
+  const [videoUrl, setVideoUrl] = useState(initialValues?.videoUrl ?? '');
+  const [videoDuration, setVideoDuration] = useState(initialValues?.videoDuration ?? '');
+  const [hasVideo, setHasVideo] = useState(initialValues?.hasVideo ?? false);
   const [questionOptionCounts, setQuestionOptionCounts] = useState<number[]>(
     () => Array.from({ length: initialValues?.questions?.length ?? 1 }, (_, i) => Math.max(2, initialValues?.questions?.[i]?.options?.length ?? 2))
   );
@@ -65,6 +71,13 @@ export function LessonForm({ moduleId, action, initialValues, defaultStepType }:
       <input type="hidden" name="moduleId" value={moduleId} />
       {initialValues && <input type="hidden" name="lessonId" value={initialValues.id} />}
       <input type="hidden" name="stepType" value={type} />
+      {step !== 1 && step !== 3 && <input type="hidden" name="title" value={title} />}
+      {!isQuiz && step !== 1 && step !== 3 && <input type="hidden" name="duration" value={duration} />}
+      {!isQuiz && step !== 1 && step !== 3 && <input type="hidden" name="body" value={body} />}
+      {isQuiz && step !== 2 && step !== 3 && <input type="hidden" name="body" value={body} />}
+      {!isQuiz && step !== 2 && step !== 3 && <input type="hidden" name="videoUrl" value={videoUrl} />}
+      {!isQuiz && step !== 2 && step !== 3 && <input type="hidden" name="videoDuration" value={videoDuration} />}
+      {!isQuiz && step !== 2 && step !== 3 && hasVideo && <input type="hidden" name="hasVideo" value="on" />}
       {state?.error && (
         <p className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">{state.error}</p>
       )}
@@ -99,7 +112,8 @@ export function LessonForm({ moduleId, action, initialValues, defaultStepType }:
           id="title"
           name="title"
           required
-          defaultValue={initialValues?.title}
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
           placeholder={isQuiz ? 'Module check: ECG basics' : 'Introduction to ECG'}
           className="w-full"
         />
@@ -111,7 +125,8 @@ export function LessonForm({ moduleId, action, initialValues, defaultStepType }:
             <Input
               id="duration"
               name="duration"
-              defaultValue={initialValues?.duration}
+              value={duration}
+              onChange={(e) => setDuration(e.target.value)}
               placeholder="12 min"
               className="w-full"
             />
@@ -122,7 +137,8 @@ export function LessonForm({ moduleId, action, initialValues, defaultStepType }:
               id="body"
               name="body"
               rows={5}
-              defaultValue={initialValues?.body}
+              value={body}
+              onChange={(e) => setBody(e.target.value)}
               placeholder="Lesson content..."
               className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm min-h-[120px]"
             />
@@ -132,7 +148,8 @@ export function LessonForm({ moduleId, action, initialValues, defaultStepType }:
               type="checkbox"
               id="hasVideo"
               name="hasVideo"
-              defaultChecked={initialValues?.hasVideo ?? false}
+              checked={hasVideo}
+              onChange={(e) => setHasVideo(e.target.checked)}
               className="h-4 w-4 rounded border-input"
             />
             <Label htmlFor="hasVideo">Has video</Label>
@@ -143,7 +160,8 @@ export function LessonForm({ moduleId, action, initialValues, defaultStepType }:
               id="videoUrl"
               name="videoUrl"
               type="url"
-              defaultValue={initialValues?.videoUrl}
+              value={videoUrl}
+              onChange={(e) => setVideoUrl(e.target.value)}
               placeholder="https://..."
               className="w-full"
             />
@@ -153,7 +171,8 @@ export function LessonForm({ moduleId, action, initialValues, defaultStepType }:
             <Input
               id="videoDuration"
               name="videoDuration"
-              defaultValue={initialValues?.videoDuration ?? undefined}
+              value={videoDuration}
+              onChange={(e) => setVideoDuration(e.target.value)}
               placeholder="10 min"
               className="w-full"
             />
@@ -168,7 +187,8 @@ export function LessonForm({ moduleId, action, initialValues, defaultStepType }:
               id="body"
               name="body"
               rows={2}
-              defaultValue={initialValues?.body}
+              value={body}
+              onChange={(e) => setBody(e.target.value)}
               placeholder="Short intro text for the quiz..."
               className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm min-h-[60px]"
             />

@@ -8,6 +8,10 @@ export async function requireUser() {
     redirect('/sign-in');
   }
 
+  if (!user.email_verified_at) {
+    redirect('/verify-email');
+  }
+
   return user;
 }
 

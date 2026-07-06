@@ -92,11 +92,7 @@ export async function registerAction(
     }
   }
 
-  if (data.user && data.session) {
-    redirect(redirectTo);
-  }
-
-  if (data.user && !data.session) {
+  if (data.user) {
     redirect('/verify-email');
   }
 

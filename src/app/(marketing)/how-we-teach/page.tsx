@@ -5,12 +5,12 @@ import {
   ArrowRight,
   Brain,
   MessageSquare,
-  PlayCircle,
   Workflow,
 } from 'lucide-react';
 import { GlowButton } from '@/components/marketing/glow-button';
 import { Reveal } from '@/components/marketing/reveal';
 import { SectionHeading } from '@/components/marketing/section-heading';
+import { getPricingConfig } from '@/lib/data/settings';
 
 const LEARNING_POINTS = [
   {
@@ -60,7 +60,8 @@ export const metadata: Metadata = {
     'See how MedUni transforms complex clinical topics into practical, exam-ready teaching using the vertigo module example.',
 };
 
-export default function HowWeTeachPage(): React.ReactElement {
+export default async function HowWeTeachPage(): Promise<React.ReactElement> {
+  const pricing = await getPricingConfig();
   return (
     <div className="py-32 min-h-screen">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
@@ -78,21 +79,31 @@ export default function HowWeTeachPage(): React.ReactElement {
 
         <Reveal>
           <section className="card rounded-[2rem] p-8 sm:p-10 mb-24">
-            <div className="aspect-video rounded-[1.5rem] bg-gradient-to-br from-slate-900 via-slate-800 to-teal-900 flex items-center justify-center relative overflow-hidden">
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(20,184,166,0.22),_transparent_55%)]" />
-              <div className="relative z-10 text-center px-6">
-                <div className="w-20 h-20 rounded-full bg-white/10 border border-white/15 mx-auto flex items-center justify-center mb-6">
-                  <PlayCircle className="w-10 h-10 text-white" />
+            <div className="grid md:grid-cols-3 gap-6">
+              <div className="rounded-2xl bg-teal-500/5 border border-teal-500/10 p-6 text-center">
+                <div className="w-14 h-14 rounded-2xl bg-teal-500/10 flex items-center justify-center mx-auto mb-4">
+                  <Brain className="w-7 h-7 text-teal-600" />
                 </div>
-                <p className="text-white text-xl sm:text-2xl font-serif max-w-2xl">
-                  See how we transform complex clinical topics into exam-ready
-                  skills
-                </p>
+                <h3 className="font-serif text-lg text-slate-800 mb-2">Structured Teaching</h3>
+                <p className="text-sm text-slate-600">Every topic is broken into a clear clinical framework so concepts stick from the first session.</p>
+              </div>
+              <div className="rounded-2xl bg-teal-500/5 border border-teal-500/10 p-6 text-center">
+                <div className="w-14 h-14 rounded-2xl bg-teal-500/10 flex items-center justify-center mx-auto mb-4">
+                  <Workflow className="w-7 h-7 text-teal-600" />
+                </div>
+                <h3 className="font-serif text-lg text-slate-800 mb-2">Clinical Reasoning</h3>
+                <p className="text-sm text-slate-600">Real-world case discussions train you to think systematically under exam conditions.</p>
+              </div>
+              <div className="rounded-2xl bg-teal-500/5 border border-teal-500/10 p-6 text-center">
+                <div className="w-14 h-14 rounded-2xl bg-teal-500/10 flex items-center justify-center mx-auto mb-4">
+                  <MessageSquare className="w-7 h-7 text-teal-600" />
+                </div>
+                <h3 className="font-serif text-lg text-slate-800 mb-2">OSCE Communication</h3>
+                <p className="text-sm text-slate-600">Practise explaining findings and plans with the structure examiners expect.</p>
               </div>
             </div>
-            <p className="text-sm text-slate-600 mt-5">
-              Vertigo module preview: structured teaching, clinical reasoning,
-              and OSCE-focused communication in one session.
+            <p className="text-sm text-slate-600 mt-6">
+              Below is an example using the <strong>Vertigo</strong> module — the same structure applies to every topic we teach.
             </p>
           </section>
         </Reveal>
@@ -144,11 +155,15 @@ export default function HowWeTeachPage(): React.ReactElement {
               </h2>
               <div className="rounded-3xl bg-slate-50 border border-slate-200 p-6 mb-6">
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="rounded-2xl border border-dashed border-slate-300 p-5 text-center text-sm text-slate-500">
-                    Vestibular system diagram
+                  <div className="rounded-2xl bg-teal-500/5 border border-teal-500/10 p-5">
+                    <Brain className="w-6 h-6 text-teal-600 mb-2" />
+                    <p className="text-sm font-medium text-slate-700">Vestibular anatomy</p>
+                    <p className="text-xs text-slate-500 mt-1">Interactive diagrams covered during the live session</p>
                   </div>
-                  <div className="rounded-2xl border border-dashed border-slate-300 p-5 text-center text-sm text-slate-500">
-                    Patient silhouette
+                  <div className="rounded-2xl bg-teal-500/5 border border-teal-500/10 p-5">
+                    <AlertTriangle className="w-6 h-6 text-teal-600 mb-2" />
+                    <p className="text-sm font-medium text-slate-700">Clinical presentation</p>
+                    <p className="text-xs text-slate-500 mt-1">Real patient scenarios with guided differential diagnosis</p>
                   </div>
                 </div>
               </div>
@@ -222,10 +237,10 @@ export default function HowWeTeachPage(): React.ReactElement {
                   href="/contact"
                   className="px-6 py-3 rounded-full border border-slate-200 text-slate-600 hover:text-teal-600 hover:border-teal-500/30 transition-all font-medium text-sm"
                 >
-                  Download OSCE Checklist
+                  Request OSCE Resources
                 </Link>
                 <GlowButton href="/webinars" className="inline-flex gap-2 text-sm">
-                  Register Now - GBP 20 per participant
+                  Register Now - {pricing.display_text}
                   <ArrowRight className="w-4 h-4" />
                 </GlowButton>
               </div>

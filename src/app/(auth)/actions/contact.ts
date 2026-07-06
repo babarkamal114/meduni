@@ -1,7 +1,7 @@
 'use server';
 
 import { z } from 'zod';
-// import { sendEmail } from '@/lib/email/send'; // TODO: Implement when email system is ready
+import { sendEmail } from '@/lib/email/resend';
 
 const contactSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -24,7 +24,6 @@ export async function submitContactForm(
       message: formData.get('message') as string,
     };
 
-    // Validate input
     const result = contactSchema.safeParse(data);
 
     if (!result.success) {
@@ -44,16 +43,28 @@ export async function submitContactForm(
       };
     }
 
-    // TODO: Implement email sending via Resend
-    // For now, we'll just log it
-    console.log('Contact form submission:', result.data);
+    const contactEmail = process.env.CONTACT_EMAIL || 'info@meduni.co.uk';
 
-    // In production, uncomment this:
-    // await sendEmail({
-    //   to: process.env.CONTACT_EMAIL || 'contact@meduni.co.uk',
-    //   template: 'contact',
-    //   data: result.data,
-    // });
+    const { success, error } = await sendEmail({
+      to: contactEmail,
+      subject: `Contact Form: ${result.data.subject}`,
+      html: `
+        <h2>New Contact Form Submission</h2>
+        <p><strong>Name:</strong> ${result.data.name}</p>
+        <p><strong>Email:</strong> ${result.data.email}</p>
+        <p><strong>Subject:</strong> ${result.data.subject}</p>
+        <hr />
+        <p>${result.data.message.replace(/\n/g, '<br />')}</p>
+      `,
+    });
+
+    if (!success) {
+      console.error('Contact form email error:', error);
+      return {
+        success: false,
+        error: 'We couldn\'t send your message right now. Please try again or email us directly.',
+      };
+    }
 
     return {
       success: true,
@@ -67,4 +78,3 @@ export async function submitContactForm(
     };
   }
 }
-

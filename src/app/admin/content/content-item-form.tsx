@@ -71,6 +71,17 @@ export function ContentItemForm({
   const isPdf = type === 'pdf';
   const isVideo = type === 'video';
 
+  const [title, setTitle] = useState(initialValues?.title ?? '');
+  const [description, setDescription] = useState(initialValues?.description ?? '');
+  const [meta, setMeta] = useState(initialValues?.meta ?? '');
+  const [estimatedTime, setEstimatedTime] = useState(initialValues?.estimatedTime ?? '');
+  const [downloadUrl, setDownloadUrl] = useState(
+    initialValues && 'downloadUrl' in initialValues ? (initialValues.downloadUrl ?? '') : ''
+  );
+  const [videoUrl, setVideoUrl] = useState(
+    initialValues && 'videoUrl' in initialValues ? (initialValues.videoUrl ?? '') : ''
+  );
+
   const initialQuestions: QuizQuestionState[] =
     initialValues && 'questions' in initialValues && initialValues.questions?.length
       ? initialValues.questions.map(toState)
@@ -78,12 +89,21 @@ export function ContentItemForm({
   const [questions, setQuestions] = useState<QuizQuestionState[]>(initialQuestions);
   const [step, setStep] = useState(0);
   const formId = useId();
-  const steps: AdminWizardStep[] = [
-    { id: 'details', title: 'Details' },
-    { id: 'meta', title: 'Meta' },
-    { id: 'quiz', title: isQuiz ? 'Quiz Builder' : 'Review' },
-    { id: 'review', title: 'Review' },
-  ];
+
+  const steps: AdminWizardStep[] = isQuiz
+    ? [
+        { id: 'details', title: 'Details' },
+        { id: 'meta', title: 'Meta & URLs' },
+        { id: 'quiz', title: 'Quiz Builder' },
+        { id: 'review', title: 'Review' },
+      ]
+    : [
+        { id: 'details', title: 'Details' },
+        { id: 'meta', title: 'Meta & URLs' },
+        { id: 'review', title: 'Review' },
+      ];
+
+  const reviewStep = steps.length - 1;
 
   const addQuestion = () => setQuestions((prev) => [...prev, defaultQuestion()]);
   const removeQuestion = (index: number) => {
@@ -135,78 +155,90 @@ export function ContentItemForm({
       <input type="hidden" name="type" value={type} />
       {initialValues && <input type="hidden" name="id" value={initialValues.id} />}
       {isQuiz && <input type="hidden" name="quiz_questions_json" value={quizJson} />}
+      {step !== 0 && <input type="hidden" name="title" value={title} />}
+      {step !== 0 && <input type="hidden" name="description" value={description} />}
+      {step !== 1 && <input type="hidden" name="meta" value={meta} />}
+      {step !== 1 && <input type="hidden" name="estimatedTime" value={estimatedTime} />}
+      {isPdf && step !== 1 && <input type="hidden" name="downloadUrl" value={downloadUrl} />}
+      {isVideo && step !== 1 && <input type="hidden" name="videoUrl" value={videoUrl} />}
       {state?.error && (
         <p className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">{state.error}</p>
       )}
-      {(step === 0 || step === 3) && <div className="space-y-2">
+      {(step === 0 || step === reviewStep) && <div className="space-y-2">
         <Label htmlFor="title">Title</Label>
         <Input
           id="title"
           name="title"
           required
-          defaultValue={initialValues?.title}
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
           placeholder="Week 12: Acute Coronary Syndromes"
           className="w-full"
         />
       </div>}
-      {(step === 0 || step === 3) && <div className="space-y-2">
+      {(step === 0 || step === reviewStep) && <div className="space-y-2">
         <Label htmlFor="description">Description</Label>
         <textarea
           id="description"
           name="description"
           rows={2}
-          defaultValue={initialValues?.description}
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
           placeholder="PDF · 24 pages · Published 2 days ago"
           className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm min-h-[60px]"
         />
       </div>}
-      {(step === 1 || step === 3) && <div className="space-y-2">
+      {(step === 1 || step === reviewStep) && <div className="space-y-2">
         <Label htmlFor="meta">Meta</Label>
         <Input
           id="meta"
           name="meta"
-          defaultValue={initialValues?.meta}
+          value={meta}
+          onChange={(e) => setMeta(e.target.value)}
           placeholder="PDF · 24 pages · Published 2 days ago"
           className="w-full"
         />
       </div>}
-      {(step === 1 || step === 3) && <div className="space-y-2">
+      {(step === 1 || step === reviewStep) && <div className="space-y-2">
         <Label htmlFor="estimatedTime">Estimated time</Label>
         <Input
           id="estimatedTime"
           name="estimatedTime"
-          defaultValue={initialValues?.estimatedTime ?? undefined}
+          value={estimatedTime}
+          onChange={(e) => setEstimatedTime(e.target.value)}
           placeholder="24 pages or 15 min"
           className="w-full"
         />
       </div>}
-      {isPdf && (step === 1 || step === 3) && (
+      {isPdf && (step === 1 || step === reviewStep) && (
         <div className="space-y-2">
           <Label htmlFor="downloadUrl">Download URL</Label>
           <Input
             id="downloadUrl"
             name="downloadUrl"
             type="url"
-            defaultValue={initialValues && 'downloadUrl' in initialValues ? initialValues.downloadUrl : undefined}
+            value={downloadUrl}
+            onChange={(e) => setDownloadUrl(e.target.value)}
             placeholder="https://..."
             className="w-full"
           />
         </div>
       )}
-      {isVideo && (step === 1 || step === 3) && (
+      {isVideo && (step === 1 || step === reviewStep) && (
         <div className="space-y-2">
           <Label htmlFor="videoUrl">Video URL</Label>
           <Input
             id="videoUrl"
             name="videoUrl"
             type="url"
-            defaultValue={initialValues && 'videoUrl' in initialValues ? initialValues.videoUrl : undefined}
+            value={videoUrl}
+            onChange={(e) => setVideoUrl(e.target.value)}
             placeholder="https://..."
             className="w-full"
           />
         </div>
       )}
-      {isQuiz && (step === 2 || step === 3) && (
+      {isQuiz && (step === 2 || step === reviewStep) && (
         <div className="border-t border-black/5 pt-4 mt-4">
           <div className="flex items-center justify-between mb-3">
             <Label className="block">Questions</Label>
@@ -290,7 +322,7 @@ export function ContentItemForm({
           )}
         </div>
       )}
-      {step === 3 ? (
+      {step === reviewStep ? (
         <p className="rounded-lg bg-slate-50 p-4 text-sm text-slate-700">
           Review this content item and save when ready.
         </p>

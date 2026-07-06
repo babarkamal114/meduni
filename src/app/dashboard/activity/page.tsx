@@ -1,7 +1,9 @@
 import Link from 'next/link';
+import { Activity } from 'lucide-react';
 import { getUser } from '@/lib/auth/getUser';
 import { getRecentActivity, ACTIVITY_PAGE_SIZE } from '@/lib/data/dashboard';
 import { ActivityFeed } from '@/components/dashboard/activity-feed';
+import { EmptyState } from '@/components/dashboard/empty-state';
 import { Button } from '@/components/ui/button';
 
 interface ActivityPageProps {
@@ -38,12 +40,13 @@ export default async function DashboardActivityPage({
       </div>
 
       {activities.length === 0 && page === 0 ? (
-        <div className="rounded-2xl border border-black/5 bg-white p-8 text-center">
-          <p className="text-slate-600 mb-4">No activity yet.</p>
-          <Button variant="secondary" asChild>
-            <Link href="/dashboard">Back to Dashboard</Link>
-          </Button>
-        </div>
+        <EmptyState
+          icon={Activity}
+          title="No activity yet"
+          description="Your learning activity, webinar purchases, and quiz results will appear here."
+          actionLabel="Back to Dashboard"
+          actionHref="/dashboard"
+        />
       ) : (
         <>
           <div className="rounded-2xl border border-black/5 bg-white p-6">

@@ -24,7 +24,7 @@ export function AuthForm({
   action,
   mode,
   redirect: redirectUrl,
-  oauthProviders = { google: true, apple: true },
+  oauthProviders = {},
 }: AuthFormProps): React.ReactElement {
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]> | undefined>(undefined);

@@ -37,6 +37,7 @@ export default async function AdminCaseStudiesPage({ searchParams }: AdminCaseSt
           <Button>Add Case Study</Button>
         </Link>
       </div>
+      <div className="overflow-x-auto">
       <div className="rounded-xl border border-black/[0.06] bg-white overflow-hidden">
         <table className="w-full text-left">
           <thead>
@@ -58,6 +59,7 @@ export default async function AdminCaseStudiesPage({ searchParams }: AdminCaseSt
             )}
           </tbody>
         </table>
+      </div>
       </div>
     </div>
   );

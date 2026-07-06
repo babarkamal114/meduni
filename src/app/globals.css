@@ -10,7 +10,7 @@
     --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-    --primary: 142.1 76.2% 36.3%;
+    --primary: 166.7 72.5% 35.1%;
     --primary-foreground: 0 0% 100%;
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
@@ -22,7 +22,7 @@
     --destructive-foreground: 210 40% 98%;
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 142.1 76.2% 36.3%;
+    --ring: 166.7 72.5% 35.1%;
     --radius: 0.5rem;
     --chart-1: 12 76% 61%;
     --chart-2: 173 58% 39%;
@@ -118,15 +118,7 @@
   }
 
   a {
-    @apply text-white transition-colors;
-  }
-
-  a:hover {
-    @apply underline;
-  }
-
-  /* Remove default link underline unless hovered */
-  a:not(:hover) {
+    @apply transition-colors;
     text-decoration: none;
   }
 
@@ -146,69 +138,6 @@
     }
   }
 
-  /* Navbar scroll-based styles */
-  header[data-scrolled="false"] nav .navbar-logo-text,
-  header[data-scrolled="false"] nav .navbar-link,
-  header[data-scrolled="false"] nav .navbar-button,
-  header[data-scrolled="false"] nav .navbar-icon {
-    @apply text-white drop-shadow-sm;
-  }
-
-  header[data-scrolled="true"] nav .navbar-logo-text {
-    @apply text-green-600 drop-shadow-none;
-  }
-
-  header[data-scrolled="true"] nav .navbar-link {
-    @apply text-slate-700 drop-shadow-none;
-  }
-
-  header[data-scrolled="true"] nav .navbar-link:hover {
-    @apply text-green-600 bg-green-50;
-  }
-
-  header[data-scrolled="true"] nav .navbar-link::after {
-    @apply bg-green-600;
-  }
-
-  header[data-scrolled="false"] nav .navbar-link::after {
-    @apply bg-white;
-  }
-
-  header[data-scrolled="true"] nav .navbar-button {
-    @apply border-green-600/20 bg-transparent text-slate-700 drop-shadow-none;
-  }
-
-  header[data-scrolled="true"] nav .navbar-button:hover {
-    @apply border-green-600/40 bg-green-50 text-green-600;
-  }
-
-  header[data-scrolled="true"] nav .navbar-icon {
-    @apply text-slate-600 drop-shadow-none;
-  }
-
-  header[data-scrolled="false"] nav .navbar-menu-button {
-    @apply text-white;
-  }
-
-  header[data-scrolled="true"] nav .navbar-menu-button {
-    @apply text-slate-700;
-  }
-
-  header[data-scrolled="false"] nav .navbar-avatar-border {
-    @apply border-white/30;
-  }
-
-  header[data-scrolled="false"] nav .navbar-avatar-border:hover {
-    @apply border-white/50;
-  }
-
-  header[data-scrolled="true"] nav .navbar-avatar-border {
-    @apply border-green-600/20;
-  }
-
-  header[data-scrolled="true"] nav .navbar-avatar-border:hover {
-    @apply border-green-600/40;
-  }
 }
 
 @layer utilities {

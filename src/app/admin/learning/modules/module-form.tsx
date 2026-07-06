@@ -1,17 +1,18 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { useFormState } from 'react-dom';
+import { isRedirectError } from 'next/dist/client/components/redirect-error';
 import type { ModuleItem } from '@/lib/data/learning';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { AdminWizardActions, AdminWizardShell, type AdminWizardStep } from '@/components/admin/admin-wizard';
 import { titleToSlug } from '@/lib/utils/slug';
+import type { AdminActionResult } from '@/types/actions';
 
 type FormAction = (
   prev: unknown,
   formData: FormData
-) => Promise<{ success: boolean; error?: string }>;
+) => Promise<AdminActionResult>;
 
 interface ModuleFormProps {
   action: FormAction;
@@ -19,7 +20,6 @@ interface ModuleFormProps {
 }
 
 export function ModuleForm({ action, initialValues }: ModuleFormProps): React.ReactElement {
-  const [state, formAction] = useFormState(action, null);
   const [step, setStep] = useState(0);
   const isEdit = !!initialValues;
   const [title, setTitle] = useState(initialValues?.title ?? '');
@@ -27,22 +27,55 @@ export function ModuleForm({ action, initialValues }: ModuleFormProps): React.Re
   const [description, setDescription] = useState(initialValues?.description ?? '');
   const [passThreshold, setPassThreshold] = useState(String(initialValues?.passThresholdPercent ?? 80));
   const derivedSlug = useMemo(() => titleToSlug(title), [title]);
+  const [error, setError] = useState<string | null>(null);
+  const [isPending, setIsPending] = useState(false);
+  const [stepError, setStepError] = useState<string | null>(null);
   const steps: AdminWizardStep[] = [
     { id: 'basics', title: 'Basics', description: 'Name and URL' },
     { id: 'rules', title: 'Rules', description: 'Passing threshold' },
     { id: 'review', title: 'Review', description: 'Save module' },
   ];
 
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError(null);
+    setIsPending(true);
+    try {
+      const formData = new FormData(e.currentTarget);
+      const result = await action(null, formData);
+      if (result && !result.success) {
+        setError(result.error ?? 'Something went wrong.');
+      }
+    } catch (err) {
+      if (isRedirectError(err)) throw err;
+      setError('Something went wrong. Please try again.');
+    } finally {
+      setIsPending(false);
+    }
+  };
+
+  const validateStep = (): boolean => {
+    if (step === 0 && !title.trim()) {
+      setStepError('Title is required.');
+      return false;
+    }
+    setStepError(null);
+    return true;
+  };
+
   return (
-    <form action={formAction}>
+    <form onSubmit={handleSubmit}>
       <AdminWizardShell steps={steps} currentStep={step}>
         {initialValues && <input type="hidden" name="id" value={initialValues.id} />}
         {step !== 0 ? <input type="hidden" name="title" value={title} /> : null}
         {step !== 0 ? <input type="hidden" name="slug" value={isEdit ? slug : derivedSlug} /> : null}
         {step !== 0 ? <input type="hidden" name="description" value={description} /> : null}
         {step !== 1 ? <input type="hidden" name="pass_threshold_percent" value={passThreshold} /> : null}
-        {state?.error ? (
-          <p className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{state.error}</p>
+        {error ? (
+          <p className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600" role="alert">{error}</p>
+        ) : null}
+        {stepError ? (
+          <p className="mb-4 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-700" role="alert">{stepError}</p>
         ) : null}
         {step === 0 ? (
           <div className="space-y-4">
@@ -134,8 +167,10 @@ export function ModuleForm({ action, initialValues }: ModuleFormProps): React.Re
         <AdminWizardActions
           currentStep={step}
           totalSteps={steps.length}
-          onBack={() => setStep((prev) => Math.max(0, prev - 1))}
+          onBack={() => { setStepError(null); setStep((prev) => Math.max(0, prev - 1)); }}
           onNext={() => setStep((prev) => Math.min(steps.length - 1, prev + 1))}
+          onBeforeNext={validateStep}
+          isSubmitting={isPending}
         />
       </AdminWizardShell>
     </form>

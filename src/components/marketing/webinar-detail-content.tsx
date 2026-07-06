@@ -98,7 +98,7 @@ export function WebinarDetailContent({
                 {webinar.statusLabel}
               </StatusBadge>
               {hasAccess && (
-                <span className="rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
+                <span className="rounded-full bg-teal-100 px-2.5 py-0.5 text-xs font-medium text-teal-800">
                   You have access
                 </span>
               )}

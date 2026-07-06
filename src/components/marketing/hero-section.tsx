@@ -53,9 +53,9 @@ export function HeroSection(): React.ReactElement {
             </GlowButton>
             <Link
               href="/sign-up"
-              className="px-8 py-4 rounded-full border border-slate-200 text-slate-500 hover:text-teal-600 hover:border-teal-500/30 transition-all font-medium text-lg w-full sm:w-auto"
+              className="px-8 py-4 rounded-full border border-slate-200 text-slate-500 hover:text-teal-600 hover:border-teal-500/30 transition-all font-medium text-lg w-full sm:w-auto text-center"
             >
-              Join Now - Free Registration &amp; Weekly Quiz
+              Create Free Account
             </Link>
           </div>
           <div className="fade-up d4 grid grid-cols-3 gap-8 mt-20 pt-12 border-t border-black/5 max-w-lg mx-auto">

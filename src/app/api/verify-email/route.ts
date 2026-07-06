@@ -45,6 +45,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   await (admin as any).from('email_verification_tokens').delete().eq('id', row.id);
 
   return NextResponse.redirect(
-    new URL('/sign-in?verified=1', request.url)
+    new URL('/sign-in?verified=1&redirect=/dashboard', request.url)
   );
 }

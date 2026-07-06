@@ -10,7 +10,15 @@ const INCLUSIONS = [
   'CPD certificate where applicable',
 ];
 
-export function PricingSection(): React.ReactElement {
+interface PricingSectionProps {
+  displayText?: string;
+  description?: string;
+}
+
+export function PricingSection({
+  displayText = 'From £3',
+  description = 'Pay per webinar. Affordable sessions from just £3. No subscriptions.',
+}: PricingSectionProps): React.ReactElement {
   return (
     <section id="pricing" className="py-32">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
@@ -23,7 +31,7 @@ export function PricingSection(): React.ReactElement {
                   Simple pricing for <span className="italic grad-text">learning</span>
                 </>
               }
-              description="Pay per webinar. Typically £25–£49 depending on topic and length. No subscriptions."
+              description={description}
             />
           </div>
         </Reveal>
@@ -37,7 +45,7 @@ export function PricingSection(): React.ReactElement {
               </div>
               <div className="mb-8 pr-20">
                 <div className="font-serif text-6xl sm:text-7xl grad-text mb-2">
-                  From £29
+                  {displayText}
                 </div>
                 <div className="text-slate-600 text-sm">
                   One-time purchase · Live + replay access
